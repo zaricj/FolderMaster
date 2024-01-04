@@ -9,10 +9,12 @@ from pathlib import Path
 # ------Variables------
 font = ("Arial", 14)
 python_executable_path = sys.executable
+
 # ------Function------
 def create_folder(source,folder_name):
     try:
-        os.mkdir(f"{source}/{folder_name}")
+        path = os.path.join(source,folder_name)
+        os.mkdir(path)
     except FileExistsError:
         print(">>> ERROR: Folder already exsists!")
 
@@ -25,6 +27,7 @@ def list_all_files_in_directory(watchingPath: str):
         return(none_list)
     except FileNotFoundError as e:
             window["-OUTPUT_WINDOW-"].update(f">>> Exception Error!\n{e}")
+            
 #def move_files_to_folder(source,destination):
 #    
 #    onlyfiles = [f for f in listdir(source) if isfile(join(source, f))]
@@ -51,7 +54,7 @@ def organize_files(organize_option, source):
                 create_folder(os.path.join(source, "Images"))
                 shutil.move(os.path.join(source, file), os.path.join(source, "Images", file))
             elif file.endswith(".docx") or file.endswith(".pdf") or file.endswith(".xls") or file.endswith(".xlsx") or file.endswith(".xml") and organize_option == "Documents":
-                create_folder(os.path.join(source, "Documents"))
+                create_folder(os.path.join(source, "Documents"),)
                 shutil.move(os.path.join(source, file), os.path.join(source, "Documents", file))
             elif file.endswith(".zip") or file.endswith(".rar") or file.endswith(".pak") and organize_option == "Archives":
                 create_folder(os.path.join(source, "Archives"))           
@@ -59,9 +62,9 @@ def organize_files(organize_option, source):
             elif file.endswith(".mp4") or file.endswith(".avi") and organize_option == "Videos":
                 create_folder(os.path.join(source, "Videos"))
                 shutil.move(os.path.join(source, file), os.path.join(source, "Videos", file))
-            elif file.endswith(".mp3") or file.endswith(".wav") and organize_option == "Audios":
-                create_folder(os.path.join(source, "Audios"))
-                shutil.move(os.path.join(source, file), os.path.join(source, "Audios", file))
+            elif file.endswith(".mp3") or file.endswith(".wav") and organize_option == "Audio":
+                create_folder(os.path.join(source, "Audios"),"Audio")
+                shutil.move(os.path.join(source, file), os.path.join(source, "Audio", file))
     except Exception as e:
         window["-OUTPUT_WINDOW-"].update(f">>> Exception Error!\n{e}")
 
@@ -89,7 +92,7 @@ sg.theme_add_new("MyTheme", my_new_theme)
 sg.theme("MyTheme")
 
 combo_list = ["all",".xls",".xlsx",".docx",".pak",".csv",".xml",".zip",".pdf",".txt",".jar",".jpg",".png",".icon",".mp4",".avi",".wav"]
-organize_options = ["Images", "Documents", "Archives", "Videos", "Audios"]
+organize_options = ["Images", "Documents", "Archives", "Videos", "Audio"]
 
 layout_title = [[sg.Text("Folder Master",font="Arial 20 bold underline",text_color="#ff793f")]]
 layout_time = [[sg.Text("Clock: "),sg.StatusBar("", size=(25, 1), key="-STATUSBAR-")]]
@@ -151,54 +154,54 @@ while True:
 #----START List all files in the directory that you're watching START----#       
     if event == "-LIST_FILES-":
         if len(source) > 0 and ends_with == "all":
-            window["-OUTPUT_WINDOW-"].print(list_all_files_in_directory(source))
+            window["-OUTPUT_WINDOW-"].update(list_all_files_in_directory(source))
         elif ends_with == ".xls" and len(source) > 0:
-            window["-OUTPUT_WINDOW-"].print(f">>> Files with filetype: {ends_with}")
+            window["-OUTPUT_WINDOW-"].update(f">>> Files with filetype: {ends_with}\n")
             window.perform_long_operation(lambda: file_type (ends_with, source),"-OUTPUT_WINDOW")
         elif ends_with == ".xlsx" and len(source) > 0:
-            window["-OUTPUT_WINDOW-"].print(f">>> Files with filetype: {ends_with}")
+            window["-OUTPUT_WINDOW-"].update(f">>> Files with filetype: {ends_with}\n")
             window.perform_long_operation(lambda: file_type (ends_with, source),"-OUTPUT_WINDOW")
         elif ends_with == ".mp4" and len(source) > 0:
-            window["-OUTPUT_WINDOW-"].print(f">>> Files with filetype: {ends_with}")
+            window["-OUTPUT_WINDOW-"].update(f">>> Files with filetype: {ends_with}\n")
             window.perform_long_operation(lambda: file_type (ends_with, source),"-OUTPUT_WINDOW")
         elif ends_with == ".avi" and len(source) > 0:
-            window["-OUTPUT_WINDOW-"].print(f">>> Files with filetype: {ends_with}")
+            window["-OUTPUT_WINDOW-"].update(f">>> Files with filetype: {ends_with}\n")
             window.perform_long_operation(lambda: file_type (ends_with, source),"-OUTPUT_WINDOW")
         elif ends_with == ".wav" and len(source) > 0:
-            window["-OUTPUT_WINDOW-"].print(f">>> Files with filetype: {ends_with}")
+            window["-OUTPUT_WINDOW-"].update(f">>> Files with filetype: {ends_with}\n")
             window.perform_long_operation(lambda: file_type (ends_with, source),"-OUTPUT_WINDOW")
         elif ends_with == ".xml" and len(source) > 0:
-            window["-OUTPUT_WINDOW-"].print(f">>> Files with filetype: {ends_with}")
+            window["-OUTPUT_WINDOW-"].update(f">>> Files with filetype: {ends_with}\n")
             window.perform_long_operation(lambda: file_type (ends_with, source),"-OUTPUT_WINDOW")
         elif ends_with == ".zip" and len(source) > 0:
-            window["-OUTPUT_WINDOW-"].print(f">>> Files with filetype: {ends_with}")
+            window["-OUTPUT_WINDOW-"].update(f">>> Files with filetype: {ends_with}\n")
             window.perform_long_operation(lambda: file_type (ends_with, source),"-OUTPUT_WINDOW")
         elif ends_with == ".pdf" and len(source) > 0:
-            window["-OUTPUT_WINDOW-"].print(f">>> Files with filetype: {ends_with}")
+            window["-OUTPUT_WINDOW-"].update(f">>> Files with filetype: {ends_with}\n")
             window.perform_long_operation(lambda: file_type (ends_with, source),"-OUTPUT_WINDOW")
         elif ends_with == ".pak" and len(source) > 0:
-            window["-OUTPUT_WINDOW-"].print(f">>> Files with filetype: {ends_with}")
+            window["-OUTPUT_WINDOW-"].update(f">>> Files with filetype: {ends_with}\n")
             window.perform_long_operation(lambda: file_type (ends_with, source),"-OUTPUT_WINDOW")
         elif ends_with == ".jar" and len(source) > 0:
-            window["-OUTPUT_WINDOW-"].print(f">>> Files with filetype: {ends_with}")
+            window["-OUTPUT_WINDOW-"].update(f">>> Files with filetype: {ends_with}\n")
             window.perform_long_operation(lambda: file_type (ends_with, source),"-OUTPUT_WINDOW")
         elif ends_with == ".txt" and len(source) > 0:
-            window["-OUTPUT_WINDOW-"].print(f">>> Files with filetype: {ends_with}")
+            window["-OUTPUT_WINDOW-"].update(f">>> Files with filetype: {ends_with}\n")
             window.perform_long_operation(lambda: file_type (ends_with, source),"-OUTPUT_WINDOW")
         elif ends_with == ".jpg" and len(source) > 0:
-            window["-OUTPUT_WINDOW-"].print(f">>> Files with filetype: {ends_with}")
+            window["-OUTPUT_WINDOW-"].update(f">>> Files with filetype: {ends_with}\n")
             window.perform_long_operation(lambda: file_type (ends_with, source),"-OUTPUT_WINDOW")
         elif ends_with == ".png" and len(source) > 0:
-            window["-OUTPUT_WINDOW-"].print(f">>> Files with filetype: {ends_with}")
+            window["-OUTPUT_WINDOW-"].update(f">>> Files with filetype: {ends_with}\n")
             window.perform_long_operation(lambda: file_type (ends_with, source),"-OUTPUT_WINDOW")
         elif ends_with == ".csv" and len(source) > 0:
-            window["-OUTPUT_WINDOW-"].print(f">>> Files with filetype: {ends_with}")
+            window["-OUTPUT_WINDOW-"].update(f">>> Files with filetype: {ends_with}\n")
             window.perform_long_operation(lambda: file_type (ends_with, source),"-OUTPUT_WINDOW")
         elif ends_with == ".icon" and len(source) > 0:
-            window["-OUTPUT_WINDOW-"].print(f">>> Files with filetype: {ends_with}")
+            window["-OUTPUT_WINDOW-"].update(f">>> Files with filetype: {ends_with}\n")
             window.perform_long_operation(lambda: file_type (ends_with, source),"-OUTPUT_WINDOW")
         elif ends_with == ".docx" and len(source) > 0:
-            window["-OUTPUT_WINDOW-"].print(f">>> Files with filetype: {ends_with}")
+            window["-OUTPUT_WINDOW-"].update(f">>> Files with filetype: {ends_with}\n")
             window.perform_long_operation(lambda: file_type (ends_with, source),"-OUTPUT_WINDOW")
         elif ends_with == "" and len(source) > 0:
             window["-OUTPUT_WINDOW-"].update(f">>> ERROR: Use the listbox to set a filetype to look for.")
