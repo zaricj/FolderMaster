@@ -15,4 +15,4 @@ Install the needed python packages:
 
 ## Screenshots of the GUI
 
-![FolderMaster](docs/images/FolderMaster.png)
+![FolderMaster](docs/images/FolderMasterDemov2.png)
