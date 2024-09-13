@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QFileDialog, QMessageBox, QSizePolicy, QTreeView, QFileSystemModel, QGroupBox, QInputDialog)
 from PySide6.QtGui import QAction, QCloseEvent, QIcon
-from PySide6.QtCore import QThread, Signal, QObject, QDir, QFile, QTextStream
+from PySide6.QtCore import QThread, Signal, QObject, QDir, QFile, QTextStream, QSettings
 import os
 import sys
 import shutil
@@ -125,8 +125,14 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Folder Master v1.0.1")
         self.setWindowIcon(QIcon("_internal\\icon\\icon.ico"))
         self.setGeometry(500, 250, 950, 800)
-        self.saveGeometry()
+        
+        # Settingsto save current location of the windows on exit
+        self.settings = QSettings("Jovan","FolderMaster")
+        geometry = self.settings.value("geometry", bytes())
+        self.restoreGeometry(geometry)
         self.config_handler = ConfigHandler()
+        
+        # Initialite the gui and all it's elements
         self.initUI()
         
         # Create the menu bar
@@ -365,6 +371,10 @@ class MainWindow(QMainWindow):
         
     def closeEvent(self, event: QCloseEvent):
         reply = QMessageBox.question(self, "Exit Program", "Are you sure you want to exit the program?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        
+        geometry = self.saveGeometry()
+        self.settings.setValue("geometry", geometry)
+        super(MainWindow, self).closeEvent(event)
         
         if reply == QMessageBox.Yes:
             event.accept()
