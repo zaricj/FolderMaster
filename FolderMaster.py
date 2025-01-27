@@ -6,10 +6,12 @@ import sys
 import shutil
 import json
 
-# //TODO Encapsulate method for organizing file because a wierd bug happens and the method gets initialised on startup and bugs out the GUI
+# //TODO Encapsulate method for organizing file because a weird bug happens and the method gets initialized on startup and bugs out the GUI
 # //TODO Enable user input on Combbox for filetypes -- DONE
 # //TODO Add JSON Config viewer and editor -- DONE
 # //TODO Create Window where user can create own themes and save them to a QSS file... (Add a colorpicker for Buttons, Background and Foreground)
+
+basedir = os.path.dirname(__file__)
 
 class JsonViewer(QMainWindow):
     def __init__(self, parent=None):
@@ -61,9 +63,7 @@ class ConfigHandler:
         script_dir = os.path.dirname(os.path.abspath(__file__))
         self.config_dir = os.path.join(script_dir, "_internal", "configuration")
         self.config_file = os.path.join(self.config_dir, "config.json")
-        
         os.makedirs(self.config_dir, exist_ok=True)
-        
         self.config = self.load_config()
 
 
@@ -122,11 +122,11 @@ class MainWindow(QMainWindow):
     
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Folder Master v1.0.1")
+        self.setWindowTitle("Folder Master v1.0.4")
         self.setWindowIcon(QIcon("_internal\\icon\\icon.ico"))
         self.setGeometry(500, 250, 950, 800)
         
-        # Settingsto save current location of the windows on exit
+        # Settings to save current location of the windows on exit
         self.settings = QSettings("Jovan","FolderMaster")
         geometry = self.settings.value("geometry", bytes())
         self.restoreGeometry(geometry)
@@ -273,7 +273,7 @@ class MainWindow(QMainWindow):
         return group
     
     
-    # Add custom eneter categories and filetypes via input to the Category ComboBox
+    # Add custom categories and filetypes via input to the Category ComboBox
     def update_custom_organize_category(self):
         self.organize_combobox.clear()
         default_options = ["Images", "Documents", "Archives", "Videos", "Audio"]
@@ -651,17 +651,20 @@ class MainWindow(QMainWindow):
                 return  # Early exit
             elif not os.path.exists(destination):
                 self.program_output.setText("Destination folder is not a valid path or is empty.")
-                reply = QMessageBox.warning(self,"Warning", f"Destination folder does not exist: {destination}\nDo you want to create it?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-                
-                # Check the user's response
-                if reply == QMessageBox.Yes:
-                    try:
-                        os.makedirs(destination)
-                        QMessageBox.information(self, "Success", f"Folder created: {destination}")
-                    except Exception as e:
-                        QMessageBox.critical(self, "Error", f"Failed to create folder: {e}")
+                if len(destination) > 0:
+                    reply = QMessageBox.warning(self,"Warning", f"Destination folder does not exist: {destination}\nDo you want to create it?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+                    # Check the user's response
+                    if reply == QMessageBox.Yes:
+                        try:
+                            os.makedirs(destination)
+                            QMessageBox.information(self, "Success", f"Folder created: {destination}")
+                        except Exception as e:
+                            QMessageBox.critical(self, "Error", f"Failed to create folder: {e}")
+                    else:
+                        return # Early exit
                 else:
-                    return # Early exit
+                    return
 
             # Gather all files to move
             files_moved = []
@@ -753,7 +756,6 @@ class MainWindow(QMainWindow):
                                 self.program_output.setText("No matching files found.")
             else:
                 self.program_output.setText("Please choose a source folder for files to organize.")
-                       
         except Exception as ex:
             self.program_output.setText(f"An exception of type {type(ex).__name__} occurred. Arguments: {ex.args!r}")
         

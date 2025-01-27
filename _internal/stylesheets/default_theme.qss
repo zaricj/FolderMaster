@@ -19,7 +19,7 @@ QLineEdit, QTextEdit, QTreeView {
     color: #ffffff;
 }
 QPushButton {
-    background-color: #c17115;
+    background-color: #e49841;
     color: white;
     border: none;
     padding: 5px;
@@ -27,17 +27,16 @@ QPushButton {
     font: bold 14px;
 }
 QPushButton:hover {
-    background-color: #a0650d;
+    background-color: #9f7330;
 }
 QPushButton:pressed {
-    background-color: #8d5a0f;
-    color: #1c1d21;
+    background-color: #2a2b2f;
 }
 QPushButton:disabled {
     background-color: #808080;
 }
 QTreeView::item:selected {
-    background-color: #c17115;
+    background-color: #e49841;
 }
 QMenuBar {
     background-color: #1c1d21;
@@ -51,7 +50,7 @@ QMenu {
     color: #ffffff;
 }
 QMenu::item:selected {
-    background-color: #c17115;
+    background-color: #e49841;
 }
 QStatusBar {
     background-color: #1e1e1e;
