@@ -34,6 +34,7 @@ class UIEvents:
         self.ui.button_browse_folder.clicked.connect(self.buttons.browse_folder)
         self.ui.button_list_files.clicked.connect(self.buttons.list_files)
         self.ui.button_save_rule.clicked.connect(self.buttons.save_rule)
+        self.ui.button_rule_info.clicked.connect(lambda: self.buttons.display_rule_info(self.main_window.config_handler.config))
 
     def connect_comboboxes(self):
         self.ui.combobox_rules.currentIndexChanged.connect(self.comboboxes.rule_changed)
@@ -44,3 +45,4 @@ class UIEvents:
     
     def connect_filesystem(self):
         self.ui.tree_view_folder.doubleClicked.connect(self.filesystem.update_filesystem_view)
+

@@ -25,8 +25,7 @@ class ConfigHandler:
         configuration = Configuration()
         self.config_dir = configuration.root_dir
         self.config_file = configuration.config_file
-        
-        self.config = self.load_config()
+        self.config = self.load_config() # Load the config file
 
     def load_config(self):
         if self.config_file.exists():
@@ -38,7 +37,7 @@ class ConfigHandler:
         return self.get_default_config()
 
     def get_default_config(self):
-        return {"custom_rule": {}}
+        return {"default": {".*"}}
 
     def save_config(self):
         with open(self.config_file, "w") as f:
@@ -46,13 +45,13 @@ class ConfigHandler:
 
     # Custom rules
     def add_custom_rule(self, name: str, extensions: list):
-        self.config[f"rule_{name}"]["extensions"] = extensions
+        self.config[name] = extensions
         self.save_config()
     
     def get_custom_rule(self, name: str):
-        return self.config.get[f"rule_{name}", []]
+        return self.config.get[name, []]
     
     def remove_custom_rule(self, name: str):
-        if name in self.config[f"rule_{name}"]:
-            del self.config[f"rule_{name}"]
+        if name in self.config[name]:
+            del self.config[name]
             self.save_config()

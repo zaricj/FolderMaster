@@ -1,5 +1,4 @@
 from assets.gui.ui.FolderMasterui_ui import Ui_MainWindow
-from core.file_manager import FileManager
 from core.config_handler import ConfigHandler
 from core.filesystem_model import FileSystemViewer
 from events.ui_events import UIEvents
@@ -60,6 +59,7 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
         
         self.filesystem_viewer = FileSystemViewer(self)
+        self.config_handler = ConfigHandler()
 
         # UI event handler for all widgets
         self.events = UIEvents(self.ui, self)
@@ -67,7 +67,18 @@ class MainWindow(QMainWindow):
         
         self.settings = QSettings("Jovan", "FolderMaster")
 
+        # Rules and config setup
+        self.setup_configuration(self.config_handler.config)
+
         self._load_app_settings(self.settings)
+        
+    # ===== Load and set up the configuration/rule file =====
+    def setup_configuration(self, configuration: dict):
+        combobox = self.ui.combobox_rules
+        rules: list[str] = list(configuration.keys())
+        
+        # Add rules to the "rules combobox"
+        combobox.addItems(rules)
         
     def save_recent_folders(self, folder_path: str):
         """

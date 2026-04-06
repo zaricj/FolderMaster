@@ -131,6 +131,17 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_5.addWidget(self.combobox_rules)
 
+        self.button_rule_info = QPushButton(self.groupBox)
+        self.button_rule_info.setObjectName(u"button_rule_info")
+        sizePolicy1.setHeightForWidth(self.button_rule_info.sizePolicy().hasHeightForWidth())
+        self.button_rule_info.setSizePolicy(sizePolicy1)
+        icon = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.HelpFaq))
+        self.button_rule_info.setIcon(icon)
+        self.button_rule_info.setAutoDefault(False)
+        self.button_rule_info.setFlat(True)
+
+        self.horizontalLayout_5.addWidget(self.button_rule_info)
+
 
         self.verticalLayout_6.addLayout(self.horizontalLayout_5)
 
@@ -284,6 +295,9 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
+        self.button_rule_info.setDefault(False)
+
+
         QMetaObject.connectSlotsByName(MainWindow)
     # setupUi
 
@@ -298,6 +312,7 @@ class Ui_MainWindow(object):
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Sort by rule:", None))
         self.combobox_rules.setItemText(0, QCoreApplication.translate("MainWindow", u"Select a rule...", None))
 
+        self.button_rule_info.setText("")
         self.button_list_files.setText(QCoreApplication.translate("MainWindow", u"List Files", None))
         self.button_sort.setText(QCoreApplication.translate("MainWindow", u"Organize", None))
         self.groupBox_4.setTitle(QCoreApplication.translate("MainWindow", u"Custom Rule Settings", None))

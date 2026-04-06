@@ -1,5 +1,5 @@
 {
-    "rule_Excel": [
+    "Excel": [
             ".xls",
             ".xlsx"
         ]

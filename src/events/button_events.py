@@ -41,6 +41,14 @@ class ButtonEvents:
 
         except Exception as e:
             self.ui.text_edit_program_output.setText(f"{type(e).__name__}: {e}")
+            
+    def display_rule_info(self, configuration: dict):
+        selected_rule = self.ui.combobox_rules.currentText()
+        if selected_rule != "Select a rule...":
+            ext = configuration[selected_rule]
+            extensions = ", ".join(ext)
+            # Display in program output
+            self.ui.text_edit_program_output.setText(f"Rule '{selected_rule}' has the following extensions:\n{extensions}")
 
     def save_rule(self):
         pass
