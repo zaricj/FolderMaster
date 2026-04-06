@@ -21,7 +21,7 @@ QLineEdit, QTextEdit, QTreeView {
 QPushButton {
     background-color: #e49841;
     color: white;
-    border: none;
+    border-radius: 8px;
     padding: 5px;
     min-width: 80px;
     font: bold 14px;

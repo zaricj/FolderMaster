@@ -1,0 +1,6 @@
+{
+    "rule_Excel": [
+            ".xls",
+            ".xlsx"
+        ]
+}
