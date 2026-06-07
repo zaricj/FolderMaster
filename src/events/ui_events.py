@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from assets.gui.ui.FolderMasterui_ui import Ui_MainWindow
+    from assets.gui.ui.ui_FolderMaster import Ui_MainWindow
     from app import MainWindow
 
 class UIEvents:
@@ -11,7 +11,7 @@ class UIEvents:
 
         # Inject dependencies once
         from core.file_manager import FileManager
-        self.file_manager = FileManager()
+        self.file_manager = FileManager(ui, main_window)
 
         # Sub event groups
         from events.button_events import ButtonEvents
@@ -34,7 +34,8 @@ class UIEvents:
         self.ui.button_browse_folder.clicked.connect(self.buttons.browse_folder)
         self.ui.button_list_files.clicked.connect(self.buttons.list_files)
         self.ui.button_save_rule.clicked.connect(self.buttons.save_rule)
-        self.ui.button_rule_info.clicked.connect(lambda: self.buttons.display_rule_info(self.main_window.config_handler.config))
+        self.ui.button_rule_info.clicked.connect(self.buttons.display_rule_info)
+        self.ui.button_add_to_list.clicked.connect(self.buttons.add_rule_to_list)
 
     def connect_comboboxes(self):
         self.ui.combobox_rules.currentIndexChanged.connect(self.comboboxes.rule_changed)

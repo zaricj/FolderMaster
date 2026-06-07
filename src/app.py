@@ -1,15 +1,12 @@
-from assets.gui.ui.FolderMasterui_ui import Ui_MainWindow
+from assets.gui.ui.ui_FolderMaster import Ui_MainWindow
 from core.config_handler import ConfigHandler
 from core.filesystem_model import FileSystemViewer
 from events.ui_events import UIEvents
-
 import sys
 
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QFileDialog, QMessageBox, QSizePolicy, QTreeView, QFileSystemModel, QGroupBox, QInputDialog)
 from PySide6.QtGui import QAction, QCloseEvent, QIcon, QGuiApplication
 from PySide6.QtCore import QThread, Signal, QObject, QDir, QFile, QTextStream, QSettings
-
-
 
 def main() -> int:
     app = QApplication(sys.argv)
@@ -51,6 +48,8 @@ def restore_window_state(window: QMainWindow, settings: QSettings):
                 available.bottom() - window.height()))
         )
 
+# --------------------------------------------------------
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -76,9 +75,13 @@ class MainWindow(QMainWindow):
     def setup_configuration(self, configuration: dict):
         combobox = self.ui.combobox_rules
         rules: list[str] = list(configuration.keys())
-        
-        # Add rules to the "rules combobox"
-        combobox.addItems(rules)
+
+        if rules:
+            # Add rules to the "rules combobox"
+            print(f"Adding rules: {rules}")
+            combobox.addItems(rules)
+        else:
+            print(f"Could not load configuration rules, it's {rules}")
         
     def save_recent_folders(self, folder_path: str):
         """
@@ -109,7 +112,7 @@ class MainWindow(QMainWindow):
         self.settings.setValue("recentFolders", combobox_items)
         self.ui.text_edit_program_output.append(f"Added {folder_path} to recent folders!")
     
-    def update_recent_folders(self, folders):
+    def update_recent_folders(self, folders: list[str]):
         """
         Update the recent folders combobox from a list of folder paths.
         Limits to 10 most recent folders.
@@ -122,36 +125,34 @@ class MainWindow(QMainWindow):
         for folder in folders[:MAX_RECENT_FOLDERS]:
             combobox.addItem(folder)
         
-
     # ===== Save app settings and close event ===== #
     
     def _load_app_settings(self, settings: QSettings):
         restore_window_state(self, settings)
-        recent_folders = settings.value("recentFolders", type=list) or []
+        recent_folders: list[str] = settings.value("recentFolders", type=list) or []
         self.update_recent_folders(recent_folders)
 
     def _save_app_settings(self):
         """Saves app settings to QSettings"""
         recent_folders = [self.ui.combobox_recent_folders.itemText(i) for i in range(self.ui.combobox_recent_folders.count())]
-        
         self.settings.setValue("recentFolders", recent_folders)
         save_window_state(self, self.settings)
 
-    def closeEvent(self, event):
+    def closeEvent(self, event) -> None:
         self._save_app_settings()
         # if self._active_worker and self._active_worker.isRunning():
-        #     reply = QMessageBox.question(
-        #         self,
-        #         "Exit Confirmation",
-        #         "A task is still running. Are you sure you want to exit?",
-        #         QMessageBox.Yes | QMessageBox.No,
-        #         QMessageBox.No,
-        #     )
-        #     if reply == QMessageBox.No:
-        #         event.ignore()
-        #         return
-            # else:
-            #     self._active_worker.stop()  # Assuming the worker has a stop method
+        reply = QMessageBox.question(
+            self,
+            "Exit Confirmation",
+            "Are you sure you want to exit?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if reply == QMessageBox.No:
+            event.ignore()
+            return
+        # else:
+        #     self._active_worker.stop()  # Assuming the worker has a stop method
 
         super().closeEvent(event)
         

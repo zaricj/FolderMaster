@@ -5,7 +5,7 @@ from PySide6.QtCore import QStandardPaths
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from assets.gui.ui.FolderMasterui_ui import Ui_MainWindow
+    from assets.gui.ui.ui_FolderMaster import Ui_MainWindow
     from app import MainWindow
 
 class ComboBoxEvents:

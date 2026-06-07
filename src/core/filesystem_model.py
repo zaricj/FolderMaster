@@ -1,13 +1,10 @@
 from PySide6.QtWidgets import QFileSystemModel, QLineEdit
 from PySide6.QtCore import QStandardPaths
-
 from typing import TYPE_CHECKING
-
 from pathlib import Path
 
 if TYPE_CHECKING:
     from app import MainWindow
-
 
 class FileSystemViewer:
 
