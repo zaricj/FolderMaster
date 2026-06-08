@@ -124,6 +124,8 @@ class ButtonEvents:
         # Extract the data for this specific rule
         extensions_list = rule_body.get("extensions", [])
         folder_name = rule_body.get("folder", "")
+        source_folder = self.ui.line_edit_selected_folder.text()
+        target_structure = Path(source_folder) if folder_name == "" else Path(source_folder) / folder_name
         extensions_display = ", ".join(extensions_list)
         
         # Insert exactly ONE new row at the bottom of your table
@@ -134,6 +136,7 @@ class ButtonEvents:
         table.setItem(row_idx, 0, QTableWidgetItem(selected_rule))      # Column 0: Rule Name
         table.setItem(row_idx, 1, QTableWidgetItem(extensions_display)) # Column 1: Extensions
         table.setItem(row_idx, 2, QTableWidgetItem(folder_name))        # Column 2: Opt. Folder Name
+        table.setItem(row_idx, 3, QTableWidgetItem(str(target_structure)))   # Column 3: Target Structure
     
         # Automatically fit column widths cleanly
         table.resizeColumnsToContents()
