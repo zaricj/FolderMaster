@@ -6,7 +6,6 @@ from assets.gui.ui.ui_FolderMaster import Ui_MainWindow
 from core.config_handler import ConfigHandler
 from core.filesystem_model import FileSystemViewer
 from events.ui_events import UIEvents
-
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QFileDialog, QMessageBox, QSizePolicy, QTreeView, QFileSystemModel, QGroupBox, QInputDialog)
 from PySide6.QtGui import QAction, QCloseEvent, QIcon, QGuiApplication
 from PySide6.QtCore import QThread, Signal, QObject, QDir, QFile, QTextStream, QSettings
