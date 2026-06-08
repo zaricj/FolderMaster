@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'FolderMasterWqslUt.ui'
+## Form generated from reading UI file 'FolderMasterVRTjtU.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.10.2
 ##
@@ -177,19 +177,19 @@ class Ui_MainWindow(object):
 
         self.gridLayout.addWidget(self.line_edit_extensions, 7, 1, 1, 1)
 
-        self.button_save_rule = QPushButton(self.groupBox_7)
-        self.button_save_rule.setObjectName(u"button_save_rule")
-        self.button_save_rule.setStyleSheet(u"QPushButton:hover {\n"
-"	background-color: #388049;\n"
-"}")
-
-        self.gridLayout.addWidget(self.button_save_rule, 5, 2, 1, 1)
-
 
         self.verticalLayout_9.addLayout(self.gridLayout)
 
 
         self.verticalLayout_7.addWidget(self.groupBox_7)
+
+        self.button_save_rule = QPushButton(self.groupBox_4)
+        self.button_save_rule.setObjectName(u"button_save_rule")
+        self.button_save_rule.setStyleSheet(u"QPushButton:hover {\n"
+"	background-color: #388049;\n"
+"}")
+
+        self.verticalLayout_7.addWidget(self.button_save_rule)
 
         self.groupBox = QGroupBox(self.groupBox_4)
         self.groupBox.setObjectName(u"groupBox")
