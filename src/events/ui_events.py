@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+from PySide6.QtCore import Qt
 
 if TYPE_CHECKING:
     from assets.gui.ui.ui_FolderMaster import Ui_MainWindow
@@ -18,17 +19,20 @@ class UIEvents:
         from events.combobox_events import ComboBoxEvents
         from events.line_edit_events import LineEditEvents
         from events.filesystem_events import FileSystemEvents
+        from events.context_menu import ContextMenu
 
         self.buttons = ButtonEvents(ui, main_window, self.file_manager)
         self.comboboxes = ComboBoxEvents(ui, main_window)
         self.line_edits = LineEditEvents(ui, main_window)
         self.filesystem = FileSystemEvents(ui, main_window)
+        self.context_menu = ContextMenu(ui, main_window)
 
     def connect_all(self):
         self.connect_buttons()
         self.connect_comboboxes()
         self.connect_line_edits()
         self.connect_filesystem()
+        self.connect_context_menu()
 
     def connect_buttons(self):
         self.ui.button_browse_folder.clicked.connect(self.buttons.browse_folder)
@@ -47,3 +51,6 @@ class UIEvents:
     def connect_filesystem(self):
         self.ui.tree_view_folder.doubleClicked.connect(self.filesystem.update_filesystem_view)
 
+    def connect_context_menu(self):
+        self.ui.table_widget_batch_rules.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.ui.table_widget_batch_rules.customContextMenuRequested.connect(self.context_menu.on_show_table_widget_context_menu)
