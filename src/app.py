@@ -1,8 +1,11 @@
+import sys
+import json
+from dataclasses import dataclass
+from pathlib import Path
 from assets.gui.ui.ui_FolderMaster import Ui_MainWindow
 from core.config_handler import ConfigHandler
 from core.filesystem_model import FileSystemViewer
 from events.ui_events import UIEvents
-import sys
 
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QTextEdit, QFileDialog, QMessageBox, QSizePolicy, QTreeView, QFileSystemModel, QGroupBox, QInputDialog)
 from PySide6.QtGui import QAction, QCloseEvent, QIcon, QGuiApplication
@@ -22,6 +25,14 @@ def save_window_state(window: QMainWindow, settings: QSettings):
     settings.setValue("geometry", window.saveGeometry())
     settings.setValue("windowState", window.saveState())
 
+def create_dir_and_file(file_path: Path | str) -> None:
+    path = Path(file_path)
+    # Ensure the parent directory structure exists
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # If the file doesn't exist, initialize it as an empty JSON object
+    if not path.exists():
+        with open(path, "w") as f:
+            json.dump({}, f)
 
 def restore_window_state(window: QMainWindow, settings: QSettings):
     geometry = settings.value("geometry")
@@ -50,6 +61,15 @@ def restore_window_state(window: QMainWindow, settings: QSettings):
 
 # --------------------------------------------------------
 
+@dataclass
+class Configuration:
+    src_dir: Path = Path(__file__).parent
+    config_file: Path = src_dir / "rules" / "rules.json"
+    
+    def __post_init__(self):
+        create_dir_and_file(self.config_file)
+        
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -58,7 +78,7 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
         
         self.filesystem_viewer = FileSystemViewer(self)
-        self.config_handler = ConfigHandler()
+        self.config_handler = ConfigHandler(Configuration())
 
         # UI event handler for all widgets
         self.events = UIEvents(self.ui, self)

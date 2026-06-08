@@ -1,29 +1,12 @@
 from assets.gui.ui.dialogs import info, warning, error
-from dataclasses import dataclass
-from pathlib import Path
 import json
+from typing import TYPE_CHECKING
 
-# Helper
-def create_dir_and_file(file_path: Path | str) -> None:
-    path = Path(file_path)
-    # Ensure the parent directory structure exists
-    path.parent.mkdir(parents=True, exist_ok=True)
-    # If the file doesn't exist, initialize it as an empty JSON object
-    if not path.exists():
-        with open(path, "w") as f:
-            json.dump({}, f)
-
-@dataclass
-class Configuration:
-    root_dir: Path = Path().cwd()
-    config_file: Path = root_dir / "src" / "rules" / "rules.json"
-    
-    def __post_init__(self):
-        create_dir_and_file(self.config_file)
+if TYPE_CHECKING:
+    from src.app import Configuration
 
 class ConfigHandler:
-    def __init__(self):
-        configuration = Configuration()
+    def __init__(self, configuration: "Configuration"):
         self.config_file = configuration.config_file
         self.config = self.load_config() # Load the config file
 
