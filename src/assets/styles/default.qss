@@ -1,0 +1,56 @@
+/* assets/stylesheet.qss
+   All visual styling lives here — never hardcode styles in Python files. */
+
+QMainWindow {
+    background-color: #1e1e2e;
+}
+
+QWidget {
+    background-color: #1e1e2e;
+    color: #cdd6f4;
+    font-family: "Segoe UI", "Inter", sans-serif;
+    font-size: 13px;
+}
+
+/* Counter display */
+QLabel#countLabel {
+    color: #cba6f7;
+}
+
+/* Status / feedback text */
+QLabel#statusLabel {
+    color: #f38ba8;
+    font-size: 11px;
+}
+
+/* Increment button */
+QPushButton#incrementButton {
+    background-color: #cba6f7;
+    color: #1e1e2e;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 20px;
+    font-weight: bold;
+}
+
+QPushButton#incrementButton:hover {
+    background-color: #b4a0e5;
+}
+
+QPushButton#incrementButton:disabled {
+    background-color: #45475a;
+    color: #6c7086;
+}
+
+/* Reset button */
+QPushButton#resetButton {
+    background-color: transparent;
+    color: #cdd6f4;
+    border: 1px solid #45475a;
+    border-radius: 6px;
+    padding: 6px 20px;
+}
+
+QPushButton#resetButton:hover {
+    background-color: #313244;
+}

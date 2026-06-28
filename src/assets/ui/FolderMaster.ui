@@ -14,7 +14,7 @@
    <string>Folder Master</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="FolderMaster.qrc">
+   <iconset>
     <normaloff>:/icons/folder.ico</normaloff>:/icons/folder.ico</iconset>
   </property>
   <property name="styleSheet">
@@ -136,41 +136,6 @@
      </widget>
     </item>
     <item>
-     <widget class="QGroupBox" name="groupBox_2">
-      <property name="title">
-       <string>Source</string>
-      </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_6">
-       <item>
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Selected folder:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="line_edit_selected_folder">
-         <property name="clearButtonEnabled">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="button_browse_folder">
-         <property name="styleSheet">
-          <string notr="true">QPushButton:hover {
-	background-color: #A24334;
-}</string>
-         </property>
-         <property name="text">
-          <string>Browse</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
      <widget class="QWidget" name="widget" native="true">
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
@@ -182,14 +147,14 @@
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_7">
             <item>
-             <widget class="QGroupBox" name="groupBox_7">
+             <widget class="QGroupBox" name="groupBox_2">
               <property name="title">
-               <string>Custom Rule Settings</string>
+               <string>Source</string>
               </property>
               <property name="flat">
                <bool>true</bool>
               </property>
-              <layout class="QVBoxLayout" name="verticalLayout_9">
+              <layout class="QVBoxLayout" name="verticalLayout_10">
                <property name="leftMargin">
                 <number>2</number>
                </property>
@@ -203,93 +168,80 @@
                 <number>2</number>
                </property>
                <item>
-                <layout class="QGridLayout" name="gridLayout">
-                 <item row="7" column="0">
-                  <widget class="QLabel" name="label_extensions">
+                <layout class="QHBoxLayout" name="horizontalLayout_3">
+                 <item>
+                  <widget class="QLabel" name="label">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="text">
-                    <string>Add extensions for rule:</string>
+                    <string>Recent folders:</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="5" column="1">
-                  <widget class="QLineEdit" name="line_edit_rule_name">
-                   <property name="placeholderText">
-                    <string>Enter a name for the new rules...</string>
-                   </property>
-                   <property name="clearButtonEnabled">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
+                 <item>
+                  <widget class="QComboBox" name="combobox_recent_folders"/>
                  </item>
-                 <item row="9" column="1">
-                  <widget class="QLineEdit" name="line_edit_opt_folder">
-                   <property name="placeholderText">
-                    <string>Enter a folder name (Optional)</string>
+                 <item>
+                  <widget class="QPushButton" name="button_back">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
                    </property>
-                  </widget>
-                 </item>
-                 <item row="9" column="0">
-                  <widget class="QLabel" name="label_opt_folder">
+                   <property name="styleSheet">
+                    <string notr="true">QPushButton:hover {
+	background-color: #A24334;
+}</string>
+                   </property>
                    <property name="text">
-                    <string>Optional folder for rule:</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="5" column="0">
-                  <widget class="QLabel" name="label_rule_name">
-                   <property name="text">
-                    <string>Custom rule name:</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="7" column="1">
-                  <widget class="QLineEdit" name="line_edit_extensions">
-                   <property name="placeholderText">
-                    <string>Add file extensions for the new rule (comma-separated)</string>
-                   </property>
-                   <property name="clearButtonEnabled">
-                    <bool>true</bool>
+                    <string>Go back</string>
                    </property>
                   </widget>
                  </item>
                 </layout>
                </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="button_save_rule">
-              <property name="styleSheet">
-               <string notr="true">QPushButton:hover {
-	background-color: #388049;
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_6">
+                 <item>
+                  <widget class="QLabel" name="label_4">
+                   <property name="text">
+                    <string>Selected folder:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="line_edit_selected_folder">
+                   <property name="clearButtonEnabled">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="button_browse_folder">
+                   <property name="styleSheet">
+                    <string notr="true">QPushButton:hover {
+	background-color: #A24334;
 }</string>
-              </property>
-              <property name="text">
-               <string>Save New Rule</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QGroupBox" name="groupBox">
-              <property name="title">
-               <string>Organization Settings</string>
-              </property>
-              <property name="flat">
-               <bool>true</bool>
-              </property>
-              <layout class="QVBoxLayout" name="verticalLayout_6">
-               <property name="leftMargin">
-                <number>2</number>
-               </property>
-               <property name="topMargin">
-                <number>6</number>
-               </property>
-               <property name="rightMargin">
-                <number>2</number>
-               </property>
-               <property name="bottomMargin">
-                <number>2</number>
-               </property>
+                   </property>
+                   <property name="text">
+                    <string>Browse</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QTreeView" name="tree_view_folder">
+                 <property name="alternatingRowColors">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_5">
                  <item>
@@ -367,18 +319,6 @@
                    </property>
                   </widget>
                  </item>
-                 <item>
-                  <widget class="QPushButton" name="button_sort">
-                   <property name="styleSheet">
-                    <string notr="true">QPushButton:hover {
-	background-color: #A24334;
-}</string>
-                   </property>
-                   <property name="text">
-                    <string>Organize</string>
-                   </property>
-                  </widget>
-                 </item>
                 </layout>
                </item>
               </layout>
@@ -387,7 +327,7 @@
             <item>
              <widget class="QGroupBox" name="groupBox_6">
               <property name="title">
-               <string>Batch Rules List</string>
+               <string>Batch Execution List</string>
               </property>
               <property name="flat">
                <bool>true</bool>
@@ -444,6 +384,18 @@
               </layout>
              </widget>
             </item>
+            <item>
+             <widget class="QPushButton" name="button_sort">
+              <property name="styleSheet">
+               <string notr="true">QPushButton:hover {
+	background-color: #A24334;
+}</string>
+              </property>
+              <property name="text">
+               <string>Organize</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
@@ -452,9 +404,121 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
+          <widget class="QGroupBox" name="groupBox_7">
+           <property name="title">
+            <string>Create Custom Rules</string>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_9">
+            <property name="leftMargin">
+             <number>2</number>
+            </property>
+            <property name="topMargin">
+             <number>6</number>
+            </property>
+            <property name="rightMargin">
+             <number>2</number>
+            </property>
+            <property name="bottomMargin">
+             <number>2</number>
+            </property>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_11">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_7">
+                <item>
+                 <widget class="QLabel" name="label_rule_name">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Custom rule name:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="line_edit_rule_name">
+                  <property name="placeholderText">
+                   <string>Enter a name for the new rules...</string>
+                  </property>
+                  <property name="clearButtonEnabled">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_8">
+              <item>
+               <widget class="QLabel" name="label_extensions">
+                <property name="text">
+                 <string>Add extensions for rule:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="line_edit_extensions">
+                <property name="placeholderText">
+                 <string>Add file extensions for the new rule (comma-separated)</string>
+                </property>
+                <property name="clearButtonEnabled">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_9">
+              <item>
+               <widget class="QLabel" name="label_opt_folder">
+                <property name="text">
+                 <string>Optional folder for rule:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="line_edit_opt_folder">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="placeholderText">
+                 <string>Enter a folder name (Optional)</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QPushButton" name="button_save_rule">
+              <property name="styleSheet">
+               <string notr="true">QPushButton:hover {
+	background-color: #388049;
+}</string>
+              </property>
+              <property name="text">
+               <string>Save New Rule</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
           <widget class="QGroupBox" name="groupBox_5">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -465,60 +529,6 @@
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
              <widget class="QTextEdit" name="text_edit_program_output"/>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QGroupBox" name="groupBox_3">
-           <property name="title">
-            <string>Folder Structure</string>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_5">
-            <item>
-             <widget class="QTreeView" name="tree_view_folder">
-              <property name="alternatingRowColors">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_3">
-              <item>
-               <widget class="QPushButton" name="button_back">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">QPushButton:hover {
-	background-color: #A24334;
-}</string>
-                </property>
-                <property name="text">
-                 <string>Go back</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>Recent folders:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QComboBox" name="combobox_recent_folders"/>
-              </item>
-             </layout>
             </item>
            </layout>
           </widget>
@@ -543,15 +553,10 @@
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <tabstops>
-  <tabstop>line_edit_selected_folder</tabstop>
-  <tabstop>button_browse_folder</tabstop>
   <tabstop>combobox_rules</tabstop>
   <tabstop>button_rule_info</tabstop>
   <tabstop>button_list_files</tabstop>
-  <tabstop>button_sort</tabstop>
   <tabstop>text_edit_program_output</tabstop>
-  <tabstop>tree_view_folder</tabstop>
-  <tabstop>button_back</tabstop>
   <tabstop>combobox_recent_folders</tabstop>
   <tabstop>button_app_settings</tabstop>
  </tabstops>
