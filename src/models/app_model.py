@@ -36,23 +36,32 @@ class AppModel(QObject):
         self.files: list[str] = []
 
 
+    def _change_source_folder(self, path: str) -> None:
+        """Internal helper to manage history transitions safely."""
+        # If they selected the exact same folder they are looking at, do nothing
+        if self.source_folder == path:
+            return
+
+        # Push the current folder to history (even if it's "") 
+        # so the user can hit "Back" to return to the startup state
+        self._history.append(self.source_folder)
+        
+        # Update state
+        self.source_folder = path
+        
+        # Broadcast out to the architecture
+        self.browse_folder_requested.emit(path)
+        self.back_button_state_changed.emit(len(self._history) > 0)
+
     def handle_browse_folder_requested(self, path: str) -> None:
-        if self.source_folder != path:
-            # Before overriding our current folder, push it to history stack
-            if self.source_folder:
-                self._history.append(self.source_folder)
-                self.back_button_state_changed.emit(True)
-
-            self.source_folder = path
-            self.browse_folder_requested.emit(path)
-
+        self._change_source_folder(path)
 
     def handle_recent_folder_update_requested(self, path: str, max_folders: int) -> None:
-        # (Your existing logic is fine here)
+        # Solely handle broadcasting the combo box UI updates now
         self.recent_folder_update_requested.emit(path, max_folders)
 
 
-    def handle_go_back_requested(self):
+    def handle_go_back_requested(self) -> None:
         if not self._history:
             return
 

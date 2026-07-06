@@ -16,7 +16,7 @@ class MainController(QObject):
         # View Actions -> Controller Slots
         self.view.browse_folder_clicked.connect(self.on_browse_folder_button_clicked)
         self.view.go_back_clicked.connect(self.on_go_back_button_clicked)
-        self.view.recent_folder_selected.connect(self.on_browse_folder_button_clicked)
+        self.view.recent_folder_selected.connect(self.on_recent_folder_combobox_activated)
         self.view.list_files_clicked.connect(self.on_list_files_button_clicked)
         self.view.display_rule_info_clicked.connect(self.on_display_rule_button_clicked)
         self.view.save_rule_clicked.connect(self.on_save_rules_clicked)
@@ -78,11 +78,21 @@ class MainController(QObject):
     @Slot(str, str)
     def on_list_files_button_clicked(self, rule_name: str, source_dir: str) -> None:
         self.model.handle_list_files_requested(rule_name, source_dir)
+        
+    @Slot(str)
+    def on_recent_folder_combobox_activated(self, path: str) -> None:   
+        """Handles when a user manually picks a path from the recent list."""
+        if not path:
+            return
+        # Update the core path state & update history stack
+        self.model.handle_browse_folder_requested(path)
+        # Re-shuffle the combobox items so this one goes to the top (Index 0)
+        self.model.handle_recent_folder_update_requested(path, self.model.max_recent_folders)
 
     @Slot(str)
     def on_browse_folder_button_clicked(self, path: str) -> None:
-        self.model.handle_browse_folder_requested(path)
-        self.model.handle_recent_folder_update_requested(path, self.model.max_recent_folders)
+        self.model.handle_browse_folder_requested(path) # Update the actual core path state & history
+        self.model.handle_recent_folder_update_requested(path, self.model.max_recent_folders) # Tell the view to synchronize its structural recent folders list
 
     @Slot()
     def on_go_back_button_clicked(self) -> None:
