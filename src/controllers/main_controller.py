@@ -1,7 +1,7 @@
 from PySide6.QtCore import QObject, Slot
 
-from src.views.main_window_view import MainWindow
 from src.models.app_model import AppModel
+from src.views.main_window_view import MainWindow
 
 
 class MainController(QObject):
@@ -36,31 +36,22 @@ class MainController(QObject):
         # QTableWidget Batch Rules
         self.model.remove_row_requested.connect(self.view.update_table_widget_on_delete_selected)
         self.model.clear_all_rows_requested.connect(self.view.update_table_widget_on_delete_all)
-        self.model.show_context_menu_requested.connect(self.view.show_table_widget_context_menu)
 
-        # Connect QMessageBox dialog
+        # QMessageBox dialogs
         self.model.error_occurred.connect(self.view.show_error_message_box)
         self.model.warning_occurred.connect(self.view.show_warning_message_box)
         self.model.info_occurred.connect(self.view.show_info_message_box)
 
-        # Connect Program Output
+        # Program Output
         self.model.append_to_program_output.connect(self.view.update_append_to_program_output)
         self.model.set_text_to_program_output.connect(self.view.update_set_text_to_program_output)
 
+    @Slot(list)
+    def on_button_sort_clicked(self, batch_rules: list[dict]) -> None:
+        self.model.handle_organize_requested(batch_rules)
 
-    @Slot(str, list)
-    def on_button_sort_clicked(self, source_dir: str, batch_rules: list[dict]) -> None:
-        self.model.handle_organize_requested(source_dir, batch_rules)
-
-    @Slot(str, str, dict)
-    def on_folder_creation_confirmed(self, source: str, destination: str, rule_config: dict) -> None:
-        self.model.execute_file_organization(source, destination, rule_config)
-
-    @Slot(str)
-    def on_context_menu_action_clicked(self, action_text: str) -> None:
-        # Snag the active row index from the view right now
-        current_row = self.view.ui.table_widget_batch_rules.currentRow()
-        # Pass both the text action and the row index into the model logic layer
+    @Slot(str, int)
+    def on_context_menu_action_clicked(self, action_text: str, current_row: int) -> None:
         self.model.handle_context_menu_action_requested(action_text, current_row)
 
     @Slot(str, str)
@@ -78,25 +69,25 @@ class MainController(QObject):
     @Slot(str, str)
     def on_list_files_button_clicked(self, rule_name: str, source_dir: str) -> None:
         self.model.handle_list_files_requested(rule_name, source_dir)
-        
+
     @Slot(str)
-    def on_recent_folder_combobox_activated(self, path: str) -> None:   
+    def on_recent_folder_combobox_activated(self, path: str) -> None:
         """Handles when a user manually picks a path from the recent list."""
-        if not path:
-            return
-        # Update the core path state & update history stack
-        self.model.handle_browse_folder_requested(path)
-        # Re-shuffle the combobox items so this one goes to the top (Index 0)
-        self.model.handle_recent_folder_update_requested(path, self.model.max_recent_folders)
+        self._open_folder(path)
 
     @Slot(str)
     def on_browse_folder_button_clicked(self, path: str) -> None:
-        self.model.handle_browse_folder_requested(path) # Update the actual core path state & history
-        self.model.handle_recent_folder_update_requested(path, self.model.max_recent_folders) # Tell the view to synchronize its structural recent folders list
+        self._open_folder(path)
+
+    def _open_folder(self, path: str) -> None:
+        if not path:
+            return
+        # Update the core path state & history, then move the entry to the top of the recent list
+        self.model.handle_browse_folder_requested(path)
+        self.model.handle_recent_folder_update_requested(path, self.model.max_recent_folders)
 
     @Slot()
     def on_go_back_button_clicked(self) -> None:
-        # Pass the intent directly down into the business logic processor
         self.model.handle_go_back_requested()
 
     @Slot()

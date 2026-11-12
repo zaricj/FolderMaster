@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'FolderMasterqVwDHh.ui'
+## Form generated from reading UI file 'FolderMaster.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.2
+## Created by: Qt User Interface Compiler version 6.12.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -26,13 +26,10 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1181, 851)
+        MainWindow.resize(1285, 926)
         icon = QIcon()
         icon.addFile(u":/icons/folder.ico", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         MainWindow.setWindowIcon(icon)
-        MainWindow.setStyleSheet(u"QPushButton {\n"
-"	background-color: #3E3E42;\n"
-"}")
         MainWindow.setIconSize(QSize(24, 24))
         MainWindow.setUnifiedTitleAndToolBarOnMac(False)
         self.centralwidget = QWidget(MainWindow)
@@ -46,7 +43,6 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.frame_title.sizePolicy().hasHeightForWidth())
         self.frame_title.setSizePolicy(sizePolicy)
-        self.frame_title.setStyleSheet(u"")
         self.frame_title.setFrameShape(QFrame.Shape.StyledPanel)
         self.frame_title.setFrameShadow(QFrame.Shadow.Raised)
         self.horizontalLayout_4 = QHBoxLayout(self.frame_title)
@@ -57,7 +53,6 @@ class Ui_MainWindow(object):
         font.setPointSize(16)
         self.label_title.setFont(font)
         self.label_title.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
-        self.label_title.setStyleSheet(u"")
         self.label_title.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
 
         self.horizontalLayout_4.addWidget(self.label_title)
@@ -69,9 +64,9 @@ class Ui_MainWindow(object):
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.button_manage_rules.sizePolicy().hasHeightForWidth())
         self.button_manage_rules.setSizePolicy(sizePolicy1)
-        self.button_manage_rules.setStyleSheet(u"QPushButton:hover {\n"
-"	background-color: #A24334;\n"
-"}")
+        font1 = QFont()
+        font1.setBold(True)
+        self.button_manage_rules.setFont(font1)
 
         self.horizontalLayout_4.addWidget(self.button_manage_rules)
 
@@ -79,9 +74,7 @@ class Ui_MainWindow(object):
         self.button_app_settings.setObjectName(u"button_app_settings")
         sizePolicy1.setHeightForWidth(self.button_app_settings.sizePolicy().hasHeightForWidth())
         self.button_app_settings.setSizePolicy(sizePolicy1)
-        self.button_app_settings.setStyleSheet(u"QPushButton:hover {\n"
-"	background-color: #A24334;\n"
-"}")
+        self.button_app_settings.setFont(font1)
 
         self.horizontalLayout_4.addWidget(self.button_app_settings)
 
@@ -90,10 +83,9 @@ class Ui_MainWindow(object):
 
         self.line = QFrame(self.centralwidget)
         self.line.setObjectName(u"line")
-        font1 = QFont()
-        font1.setPointSize(9)
-        self.line.setFont(font1)
-        self.line.setStyleSheet(u"")
+        font2 = QFont()
+        font2.setPointSize(9)
+        self.line.setFont(font2)
         self.line.setFrameShadow(QFrame.Shadow.Sunken)
         self.line.setLineWidth(1)
         self.line.setMidLineWidth(0)
@@ -111,6 +103,7 @@ class Ui_MainWindow(object):
         self.groupBox_4.setObjectName(u"groupBox_4")
         self.verticalLayout_7 = QVBoxLayout(self.groupBox_4)
         self.verticalLayout_7.setObjectName(u"verticalLayout_7")
+        self.verticalLayout_7.setContentsMargins(4, 4, 4, 4)
         self.groupBox_2 = QGroupBox(self.groupBox_4)
         self.groupBox_2.setObjectName(u"groupBox_2")
         self.groupBox_2.setFlat(True)
@@ -138,9 +131,7 @@ class Ui_MainWindow(object):
         self.button_back.setObjectName(u"button_back")
         sizePolicy1.setHeightForWidth(self.button_back.sizePolicy().hasHeightForWidth())
         self.button_back.setSizePolicy(sizePolicy1)
-        self.button_back.setStyleSheet(u"QPushButton:hover {\n"
-"	background-color: #A24334;\n"
-"}")
+        self.button_back.setFont(font1)
 
         self.horizontalLayout_3.addWidget(self.button_back)
 
@@ -162,9 +153,7 @@ class Ui_MainWindow(object):
 
         self.button_browse_folder = QPushButton(self.groupBox_2)
         self.button_browse_folder.setObjectName(u"button_browse_folder")
-        self.button_browse_folder.setStyleSheet(u"QPushButton:hover {\n"
-"	background-color: #A24334;\n"
-"}")
+        self.button_browse_folder.setFont(font1)
 
         self.horizontalLayout_6.addWidget(self.button_browse_folder)
 
@@ -210,23 +199,20 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.button_add_to_list = QPushButton(self.groupBox_2)
         self.button_add_to_list.setObjectName(u"button_add_to_list")
-        self.button_add_to_list.setStyleSheet(u"QPushButton:hover {\n"
-"	background-color: #A24334;\n"
-"}")
+        self.button_add_to_list.setFont(font1)
 
         self.horizontalLayout.addWidget(self.button_add_to_list)
 
         self.button_list_files = QPushButton(self.groupBox_2)
         self.button_list_files.setObjectName(u"button_list_files")
-        self.button_list_files.setStyleSheet(u"QPushButton:hover {\n"
-"	background-color: #A24334;\n"
-"}")
+        self.button_list_files.setFont(font1)
 
         self.horizontalLayout.addWidget(self.button_list_files)
 
 
         self.verticalLayout_10.addLayout(self.horizontalLayout)
 
+        self.verticalLayout_10.setStretch(2, 1)
 
         self.verticalLayout_7.addWidget(self.groupBox_2)
 
@@ -260,12 +246,12 @@ class Ui_MainWindow(object):
 
         self.button_sort = QPushButton(self.groupBox_4)
         self.button_sort.setObjectName(u"button_sort")
-        self.button_sort.setStyleSheet(u"QPushButton:hover {\n"
-"	background-color: #A24334;\n"
-"}")
+        self.button_sort.setFont(font1)
 
         self.verticalLayout_7.addWidget(self.button_sort)
 
+        self.verticalLayout_7.setStretch(0, 3)
+        self.verticalLayout_7.setStretch(1, 2)
 
         self.verticalLayout_2.addWidget(self.groupBox_4)
 
@@ -276,7 +262,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.groupBox_7 = QGroupBox(self.widget)
         self.groupBox_7.setObjectName(u"groupBox_7")
-        self.groupBox_7.setFlat(True)
+        self.groupBox_7.setFlat(False)
         self.verticalLayout_9 = QVBoxLayout(self.groupBox_7)
         self.verticalLayout_9.setObjectName(u"verticalLayout_9")
         self.verticalLayout_9.setContentsMargins(2, 6, 2, 2)
@@ -291,11 +277,16 @@ class Ui_MainWindow(object):
         sizePolicy3.setVerticalStretch(0)
         sizePolicy3.setHeightForWidth(self.label_rule_name.sizePolicy().hasHeightForWidth())
         self.label_rule_name.setSizePolicy(sizePolicy3)
+        self.label_rule_name.setMinimumSize(QSize(126, 0))
+        font3 = QFont()
+        font3.setBold(False)
+        self.label_rule_name.setFont(font3)
 
         self.horizontalLayout_7.addWidget(self.label_rule_name)
 
         self.line_edit_rule_name = QLineEdit(self.groupBox_7)
         self.line_edit_rule_name.setObjectName(u"line_edit_rule_name")
+        self.line_edit_rule_name.setMinimumSize(QSize(0, 0))
         self.line_edit_rule_name.setClearButtonEnabled(True)
 
         self.horizontalLayout_7.addWidget(self.line_edit_rule_name)
@@ -310,6 +301,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
         self.label_extensions = QLabel(self.groupBox_7)
         self.label_extensions.setObjectName(u"label_extensions")
+        self.label_extensions.setFont(font3)
 
         self.horizontalLayout_8.addWidget(self.label_extensions)
 
@@ -326,6 +318,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
         self.label_opt_folder = QLabel(self.groupBox_7)
         self.label_opt_folder.setObjectName(u"label_opt_folder")
+        self.label_opt_folder.setFont(font3)
 
         self.horizontalLayout_9.addWidget(self.label_opt_folder)
 
@@ -344,9 +337,7 @@ class Ui_MainWindow(object):
 
         self.button_save_rule = QPushButton(self.groupBox_7)
         self.button_save_rule.setObjectName(u"button_save_rule")
-        self.button_save_rule.setStyleSheet(u"QPushButton:hover {\n"
-"	background-color: #388049;\n"
-"}")
+        self.button_save_rule.setFont(font1)
 
         self.verticalLayout_9.addWidget(self.button_save_rule)
 
@@ -357,26 +348,32 @@ class Ui_MainWindow(object):
         self.groupBox_5.setObjectName(u"groupBox_5")
         sizePolicy3.setHeightForWidth(self.groupBox_5.sizePolicy().hasHeightForWidth())
         self.groupBox_5.setSizePolicy(sizePolicy3)
+        self.groupBox_5.setFlat(False)
         self.verticalLayout_3 = QVBoxLayout(self.groupBox_5)
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.verticalLayout_3.setContentsMargins(2, 6, 2, 2)
         self.text_edit_program_output = QTextEdit(self.groupBox_5)
         self.text_edit_program_output.setObjectName(u"text_edit_program_output")
+        self.text_edit_program_output.setLineWidth(1)
 
         self.verticalLayout_3.addWidget(self.text_edit_program_output)
 
 
         self.verticalLayout_4.addWidget(self.groupBox_5)
 
+        self.verticalLayout_4.setStretch(1, 1)
 
         self.horizontalLayout_2.addLayout(self.verticalLayout_4)
 
+        self.horizontalLayout_2.setStretch(0, 3)
+        self.horizontalLayout_2.setStretch(1, 2)
 
         self.verticalLayout.addWidget(self.widget)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1181, 33))
+        self.menubar.setGeometry(QRect(0, 0, 1285, 33))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -414,13 +411,13 @@ class Ui_MainWindow(object):
         self.button_list_files.setText(QCoreApplication.translate("MainWindow", u"List Files", None))
         self.groupBox_6.setTitle(QCoreApplication.translate("MainWindow", u"Batch Execution List", None))
         ___qtablewidgetitem = self.table_widget_batch_rules.horizontalHeaderItem(0)
-        ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", u"Rule Name", None));
+        ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", u"Rule Name", None))
         ___qtablewidgetitem1 = self.table_widget_batch_rules.horizontalHeaderItem(1)
-        ___qtablewidgetitem1.setText(QCoreApplication.translate("MainWindow", u"Extensions", None));
+        ___qtablewidgetitem1.setText(QCoreApplication.translate("MainWindow", u"Extensions", None))
         ___qtablewidgetitem2 = self.table_widget_batch_rules.horizontalHeaderItem(2)
-        ___qtablewidgetitem2.setText(QCoreApplication.translate("MainWindow", u"Opt. Folder Name", None));
+        ___qtablewidgetitem2.setText(QCoreApplication.translate("MainWindow", u"Opt. Folder Name", None))
         ___qtablewidgetitem3 = self.table_widget_batch_rules.horizontalHeaderItem(3)
-        ___qtablewidgetitem3.setText(QCoreApplication.translate("MainWindow", u"Target Structure", None));
+        ___qtablewidgetitem3.setText(QCoreApplication.translate("MainWindow", u"Target Structure", None))
         self.button_sort.setText(QCoreApplication.translate("MainWindow", u"Organize", None))
         self.groupBox_7.setTitle(QCoreApplication.translate("MainWindow", u"Create Custom Rules", None))
         self.label_rule_name.setText(QCoreApplication.translate("MainWindow", u"Custom rule name:", None))

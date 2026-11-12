@@ -1,9 +1,45 @@
+import os
+import shutil
 from pathlib import Path
-from PySide6.QtCore import QObject, Signal, QPoint
-from src.core.rule_config_handler import RuleConfigHandler
+
+from PySide6.QtCore import QObject, Signal
+
+from src.core.rule_config_handler import WILDCARD, RuleConfigHandler, normalize_extensions
+
+# Resolve relative to this file so the app works regardless of the current working directory
+CONFIG_FILE = Path(__file__).resolve().parent.parent / "rules" / "rules.json"
+
+# Characters that are not allowed in a single folder name on Windows
+_INVALID_FOLDER_CHARS = set('<>:"/\\|?*')
 
 
-CONFIG_FILE = Path().cwd() / "src" / "rules" / "rules.json"
+def _scan_files(directory: Path) -> list[os.DirEntry]:
+    """Return the regular files of a directory.
+
+    os.scandir caches file-type info from the directory listing, avoiding one extra
+    stat() system call per entry compared to Path.iterdir() + is_file().
+    """
+    with os.scandir(directory) as it:
+        return [entry for entry in it if entry.is_file()]
+
+
+def _matches(filename: str, extensions: set[str]) -> bool:
+    return WILDCARD in extensions or Path(filename).suffix.lower() in extensions
+
+
+def _unique_destination(dest_dir: Path, filename: str) -> Path:
+    """Avoid silently overwriting an existing file: 'a.txt' -> 'a (1).txt' -> 'a (2).txt' ..."""
+    candidate = dest_dir / filename
+    if not candidate.exists():
+        return candidate
+    stem, suffix = Path(filename).stem, Path(filename).suffix
+    counter = 1
+    while True:
+        candidate = dest_dir / f"{stem} ({counter}){suffix}"
+        if not candidate.exists():
+            return candidate
+        counter += 1
+
 
 class AppModel(QObject):
     browse_folder_requested = Signal(str)
@@ -11,12 +47,10 @@ class AppModel(QObject):
     back_button_state_changed = Signal(bool)  # Tells the UI to enable/disable back button
     list_files_requested = Signal(list)  # for list_files method
     load_rules_requested = Signal(dict)  # Load the rule JSON file on startup
-    add_to_list_requested = Signal(str, dict) # Rule name and rule data
+    add_to_list_requested = Signal(str, dict)  # Rule name and rule data
     organize_completed = Signal(str, int)
-    
-    # Context menu
-    show_context_menu_requested = Signal(QPoint)
-    context_menu_action_requested = Signal(str)
+
+    # Batch table
     remove_row_requested = Signal(int)
     clear_all_rows_requested = Signal()
 
@@ -27,238 +61,255 @@ class AppModel(QObject):
     append_to_program_output = Signal(str)
     set_text_to_program_output = Signal(str)
 
-    def __init__(self) -> None:
+    def __init__(self, config_file: str | Path = CONFIG_FILE) -> None:
         super().__init__()
-        self.rule_handler = RuleConfigHandler(CONFIG_FILE)
+        self.rule_handler = RuleConfigHandler(config_file)
         self.source_folder: str = ""
         self.max_recent_folders = 10
-        self._history: list[str] = []  # Clear tracking stack for paths
+        self._history: list[str] = []  # Navigation stack for the "Go back" button
         self.files: list[str] = []
 
+    # ------------------------------------------------------------------
+    # Navigation
+    # ------------------------------------------------------------------
 
-    def _change_source_folder(self, path: str) -> None:
-        """Internal helper to manage history transitions safely."""
+    def handle_browse_folder_requested(self, path: str) -> None:
+        path = os.path.normpath(path) if path else path
         # If they selected the exact same folder they are looking at, do nothing
         if self.source_folder == path:
             return
 
-        # Push the current folder to history (even if it's "") 
+        # Push the current folder to history (even if it's "")
         # so the user can hit "Back" to return to the startup state
         self._history.append(self.source_folder)
-        
-        # Update state
         self.source_folder = path
-        
-        # Broadcast out to the architecture
-        self.browse_folder_requested.emit(path)
-        self.back_button_state_changed.emit(len(self._history) > 0)
 
-    def handle_browse_folder_requested(self, path: str) -> None:
-        self._change_source_folder(path)
+        self.browse_folder_requested.emit(path)
+        self.back_button_state_changed.emit(bool(self._history))
 
     def handle_recent_folder_update_requested(self, path: str, max_folders: int) -> None:
-        # Solely handle broadcasting the combo box UI updates now
-        self.recent_folder_update_requested.emit(path, max_folders)
-
+        self.recent_folder_update_requested.emit(os.path.normpath(path), max_folders)
 
     def handle_go_back_requested(self) -> None:
         if not self._history:
             return
 
-        # Pop the last folder off the stack and make it active
-        previous_path = self._history.pop()
-        self.source_folder = previous_path
+        self.source_folder = self._history.pop()
+        self.browse_folder_requested.emit(self.source_folder)
+        self.back_button_state_changed.emit(bool(self._history))
 
-        # Broadcast the changes back out to the app architecture
-        self.browse_folder_requested.emit(previous_path)
-        self.back_button_state_changed.emit(len(self._history) > 0)
+    # ------------------------------------------------------------------
+    # Validation helpers
+    # ------------------------------------------------------------------
 
-
-    def handle_list_files_requested(self, rule_name: str, source_dir: str) -> None:
-        try:
-            if source_dir == "":
-                self.warning_occurred.emit(
-                    "No directory selected",
-                    "Please select a directory from which you want to list files.",
-                )
-                return
-
-            if not Path(source_dir).exists():
-                self.warning_occurred.emit(
-                    "Directory does not exist", "The selected directory does not exist."
-                )
-                return
-
-            if rule_name == "Select a rule...":
-                self.append_to_program_output.emit(
-                    "Listing all files in directory as no rule filter has been selected:"
-                )
-                self.files = [
-                    file.name for file in Path(source_dir).iterdir() if file.is_file()
-                ]
-                self.list_files_requested.emit(self.files)
-
-            else:
-                rule_data = self.rule_handler.get_custom_rule(rule_name)
-                extensions = [ext.lower() for ext in rule_data.get("extensions", [])]
-
-                self.files = [
-                    file.name
-                    for file in Path(source_dir).iterdir()
-                    if file.is_file() and file.suffix.lower() in extensions
-                ]
-
-                self.list_files_requested.emit(self.files)
-
-        except Exception as e:
-            self.error_occurred.emit("Error", f"Failed to list files: {e}")
-            return []
-
-
-    def handle_load_rules_requested(self) -> None:
-        rules_data = self.rule_handler.data
-        self.load_rules_requested.emit(rules_data)
-
-
-    def handle_display_rule_info_requested(self, rule_name: str, source_dir: str) -> None:
-        if rule_name != "Select a rule..." and rule_name in self.rule_handler.data:
-            selected_rule_data = self.rule_handler.data[rule_name]
-            
-            # Since extensions are saved as a list, we join them cleanly for display
-            extensions = ", ".join(selected_rule_data.get("extensions", []))
-            folder = selected_rule_data.get("folder", "None specified")
-            target_folder = Path(source_dir) / folder 
-            
-            output_text = (
-                f"Rule Name: {rule_name}\n"
-                f"Extensions: {extensions}\n"
-                f"Target Folder: {target_folder}"
-            )
-            self.set_text_to_program_output.emit(output_text)
-
-
-    def handle_save_rule_requested(self, rule_name: str, opt_folder_name: str, extensions: list) -> None:
-        if not rule_name or not extensions:
-            self.warning_occurred.emit("Failed to save rule", "The Rule name and extensions cannot be empty.")
-            return
-
-        # Check the handler dictionary for same rule names
-        current_rules = self.rule_handler.data
-        
-        if rule_name in current_rules:
-            self.rule_handler.add_custom_rule(rule_name, extensions, opt_folder_name)
-            self.info_occurred.emit("Rule overwritten", f"A rule named '{rule_name}' already exists.\nThe rule has been overwritten with new values!")
-            # Reload the rule configuration file 
-            new_rule_data = self.rule_handler.load_config()
-            self.load_rules_requested.emit(new_rule_data)
-        
-        else:
-            self.rule_handler.add_custom_rule(rule_name, extensions, opt_folder_name)
-            self.info_occurred.emit("Rule saved", f"Rule '{rule_name}' has been saved successfully!")
-            # Reload the rule configuration file 
-            new_rule_data = self.rule_handler.load_config()
-            self.load_rules_requested.emit(new_rule_data)
-
-
-    def handle_add_to_list_requested(self, source_dir: str, rule_name: str) -> None:
-        if rule_name == "Select a rule...":
-            self.warning_occurred.emit("No rule selected", "Please select a rule from the combobox in order to add it to the list.")
-            return
-        
-        if source_dir == "":
+    def _validate_source_dir(self, source_dir: str) -> Path | None:
+        """Emit a warning and return None if the directory is unusable."""
+        if not source_dir:
             self.warning_occurred.emit(
                 "No directory selected",
-                "Source directory cannot be empty, please select a source folder."
+                "Please select a source folder first.",
+            )
+            return None
+
+        path = Path(source_dir)
+        if not path.is_dir():
+            self.warning_occurred.emit(
+                "Directory does not exist",
+                f"The selected directory does not exist:\n{source_dir}",
+            )
+            return None
+        return path
+
+    @staticmethod
+    def _is_valid_folder_name(name: str) -> bool:
+        """A target folder must be a single, plain folder name inside the source dir."""
+        if not name:
+            return True  # Optional
+        if name in (".", "..") or name.endswith((" ", ".")):
+            return False
+        return not any(c in _INVALID_FOLDER_CHARS or ord(c) < 32 for c in name)
+
+    # ------------------------------------------------------------------
+    # Rules
+    # ------------------------------------------------------------------
+
+    def handle_list_files_requested(self, rule_name: str, source_dir: str) -> None:
+        source_path = self._validate_source_dir(source_dir)
+        if source_path is None:
+            return
+
+        try:
+            entries = _scan_files(source_path)
+        except OSError as e:
+            self.error_occurred.emit("Error", f"Failed to list files: {e}")
+            return
+
+        if not rule_name:
+            self.set_text_to_program_output.emit(
+                "Listing all files in directory as no rule filter has been selected:"
+            )
+            self.files = sorted((e.name for e in entries), key=str.lower)
+        else:
+            extensions = set(self.rule_handler.get_custom_rule(rule_name).get("extensions", []))
+            self.set_text_to_program_output.emit(f"Files matching rule '{rule_name}':")
+            self.files = sorted((e.name for e in entries if _matches(e.name, extensions)), key=str.lower)
+
+        self.list_files_requested.emit(self.files)
+
+    def handle_load_rules_requested(self) -> None:
+        self.load_rules_requested.emit(self.rule_handler.data)
+
+    def handle_display_rule_info_requested(self, rule_name: str, source_dir: str) -> None:
+        rule = self.rule_handler.get_custom_rule(rule_name) if rule_name else {}
+        if not rule:
+            self.warning_occurred.emit("No rule selected", "Please select a rule to display its details.")
+            return
+
+        extensions = ", ".join(rule.get("extensions", []))
+        folder = rule.get("folder") or rule_name
+        target = str(Path(source_dir) / folder) if source_dir else f"<source folder>{os.sep}{folder}"
+
+        self.set_text_to_program_output.emit(
+            f"Rule Name: {rule_name}\n"
+            f"Extensions: {extensions}\n"
+            f"Target Folder: {target}"
+        )
+
+    def handle_save_rule_requested(self, rule_name: str, opt_folder_name: str, extensions: list) -> None:
+        extensions = normalize_extensions(extensions)
+        if not rule_name or not extensions:
+            self.warning_occurred.emit("Failed to save rule", "The rule name and extensions cannot be empty.")
+            return
+
+        if not self._is_valid_folder_name(opt_folder_name):
+            self.warning_occurred.emit(
+                "Invalid folder name",
+                "The optional folder must be a single folder name without any of these "
+                'characters: < > : " / \\ | ? *',
             )
             return
-        
-        # Look up only the single selected rule from the combobox
-        rule_data = self.rule_handler.data[rule_name]
-        
+
+        already_exists = rule_name in self.rule_handler.data
+        try:
+            self.rule_handler.add_custom_rule(rule_name, extensions, opt_folder_name)
+        except OSError as e:
+            self.error_occurred.emit("Failed to save rule", f"Could not write the rules file:\n{e}")
+            return
+
+        if already_exists:
+            self.info_occurred.emit(
+                "Rule overwritten",
+                f"A rule named '{rule_name}' already existed and has been overwritten with the new values.",
+            )
+        else:
+            self.info_occurred.emit("Rule saved", f"Rule '{rule_name}' has been saved successfully!")
+
+        # The handler keeps its in-memory data in sync - no need to re-read the file
+        self.load_rules_requested.emit(self.rule_handler.data)
+
+    def handle_add_to_list_requested(self, source_dir: str, rule_name: str) -> None:
+        if not rule_name:
+            self.warning_occurred.emit("No rule selected", "Please select a rule from the combobox in order to add it to the list.")
+            return
+
+        if self._validate_source_dir(source_dir) is None:
+            return
+
+        rule_data = self.rule_handler.get_custom_rule(rule_name)
         if not rule_data:
             self.warning_occurred.emit("Rule not found", f"The rule '{rule_name}' could not be found in your configuration.")
             return
-        else:
-            self.add_to_list_requested.emit(rule_name, rule_data)
 
+        self.add_to_list_requested.emit(rule_name, rule_data)
+
+    # ------------------------------------------------------------------
+    # Batch table context menu
+    # ------------------------------------------------------------------
 
     def handle_context_menu_action_requested(self, action: str, current_row: int) -> None:
         if action == "Remove Selected":
-            self.remove_selected_row(current_row)
-        elif action == "Remove All":
-            self.remove_all_selected_rows()
-
-
-    def remove_selected_row(self, current_row: int) -> None:
-        try:
-            if current_row != -1:
-                self.remove_row_requested.emit(current_row)
-                self.append_to_program_output.emit(f"Removed item at row: {current_row}")
-            else:
+            if current_row < 0:
                 self.append_to_program_output.emit("No row selected to delete.")
-        except Exception as ex:
-            message = f"An exception of type {type(ex).__name__} occurred. Arguments: {ex.args!r}"
-            self.set_text_to_program_output.emit(f"Error removing selected item from table: {message}")
-
-
-    def remove_all_selected_rows(self) -> None:
-        try:
-            # We don't check row count here; we let the View handle its own structural reset
+                return
+            self.remove_row_requested.emit(current_row)
+            self.append_to_program_output.emit(f"Removed item at row: {current_row + 1}")
+        elif action == "Remove All":
             self.clear_all_rows_requested.emit()
-        except Exception as ex:
-            message = f"An exception of type {type(ex).__name__} occurred. Arguments: {ex.args!r}"
-            self.set_text_to_program_output.emit(f"Error removing all rows from table: {message}")
 
+    # ------------------------------------------------------------------
+    # Organize
+    # ------------------------------------------------------------------
 
-    def handle_organize_requested(self, source_dir: str, batch_rules: list[dict]) -> None:
-        """Iterates through every batched rule and processes file sorting."""
-        if not source_dir:
-            self.warning_occurred.emit("No directory selected", "The source directory cannot be empty.")
-            return
+    def handle_organize_requested(self, batch_rules: list[dict]) -> None:
+        """Process every batched rule. Each row carries the source folder it was added for.
 
-        source_path: Path = Path(source_dir)
-        
-        if not source_path.exists():
-            self.warning_occurred.emit("Warning", "Source folder does not exist.")
-            return
+        Each source folder is scanned only once; rules are applied in table order and a file
+        is moved by the first rule that matches it.
+        """
+        # Group rows by source folder, keeping table order
+        by_source: dict[str, list[dict]] = {}
+        for rule in batch_rules:
+            by_source.setdefault(rule["source_dir"], []).append(rule)
 
-        for rule in batch_rules:  # ◄── 'rule' is the single item dictionary
-            rule_name: str = rule["rule_name"]
-            opt_folder_name: str = rule["folder"].strip()
-            
-            if opt_folder_name:
-                dest_path: Path = source_path / opt_folder_name
-            else:
-                dest_path: Path = source_path / rule_name
+        errors: list[str] = []
+        total_moved = 0
 
-            if not dest_path.exists():
-                dest_path.mkdir(parents=True, exist_ok=True)
-    
-            self.execute_file_organization(source_path, dest_path, rule)
+        for source_dir, rules in by_source.items():
+            source_path = self._validate_source_dir(source_dir)
+            if source_path is None:
+                continue
 
+            try:
+                remaining = _scan_files(source_path)
+            except OSError as e:
+                errors.append(f"{source_dir}: {e}")
+                continue
 
-    def execute_file_organization(self, source_path: Path, dest_path: Path, rule_config: dict) -> None:
-        """Executes actual file adjustments based on selected extensions criteria."""
+            for rule in rules:
+                moved, remaining, rule_errors = self._apply_rule(source_path, rule, remaining)
+                total_moved += moved
+                errors.extend(rule_errors)
+                self.organize_completed.emit(rule["rule_name"], moved)
+
+        self.append_to_program_output.emit(f"Done. {total_moved} file(s) moved in total.")
+
+        # Report all failures in one dialog instead of one modal box per file
+        if errors:
+            shown = "\n".join(errors[:20])
+            more = f"\n... and {len(errors) - 20} more." if len(errors) > 20 else ""
+            self.error_occurred.emit("Some files could not be moved", f"{shown}{more}")
+
+    def _apply_rule(
+        self, source_path: Path, rule: dict, files: list[os.DirEntry]
+    ) -> tuple[int, list[os.DirEntry], list[str]]:
+        """Move the matching files for a single rule. Returns (moved, unmatched_files, errors)."""
+        rule_name: str = rule["rule_name"]
+        folder_name: str = rule.get("folder", "").strip() or rule_name
+
+        if not self._is_valid_folder_name(folder_name):
+            return 0, files, [f"Rule '{rule_name}': invalid target folder name '{folder_name}'."]
+
+        extensions = set(normalize_extensions(rule.get("extensions", [])))
+        matching = [f for f in files if _matches(f.name, extensions)]
+        unmatched = [f for f in files if not _matches(f.name, extensions)]
+
+        # Only create the target folder when there is something to move into it
+        if not matching:
+            return 0, unmatched, []
+
+        dest_path = source_path / folder_name
         try:
             dest_path.mkdir(parents=True, exist_ok=True)
-            extensions = rule_config.get("extensions", [])
-            
-            # Strip out leading asterisks '*' so '*.txt' becomes '.txt' for example
-            extensions_lower = [ext.lower().lstrip('*') for ext in extensions]
-            moved_count = 0
+        except OSError as e:
+            return 0, unmatched, [f"Rule '{rule_name}': cannot create '{dest_path}': {e}"]
 
-            for file in source_path.iterdir():
-                if file.is_file() and file.suffix.lower() in extensions_lower:
-                    dst_file = dest_path / file.name
-                    try:
-                        from shutil import move
-                        move(str(file), str(dst_file))
-                        moved_count += 1
-                    except Exception as e:
-                        self.error_occurred.emit("Error", f"Failed to move file '{file.name}': {e}")
+        moved = 0
+        errors: list[str] = []
+        for entry in matching:
+            try:
+                shutil.move(entry.path, _unique_destination(dest_path, entry.name))
+                moved += 1
+            except OSError as e:
+                errors.append(f"{entry.name}: {e}")
 
-            # FIX: Corrected variable name referencing 'rule_config' here
-            self.organize_completed.emit(rule_config["rule_name"], moved_count)
-
-        except Exception as e:
-            self.error_occurred.emit("Error", f"Failed to organize batch: {e}")
+        return moved, unmatched, errors

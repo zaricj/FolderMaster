@@ -7,74 +7,132 @@ Rules:
     - Public slot methods allow the Controller to drive UI updates.
 """
 
-from PySide6.QtCore import Qt, QSettings, Signal, Slot, QPoint
-from PySide6.QtGui import QFont, QCloseEvent, QShowEvent, QAction
+import os
+
+from PySide6.QtCore import QPoint, QSettings, Qt, Signal, Slot
+from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import (
-    QMainWindow,
-    QMessageBox,
-    QFileDialog,
     QAbstractItemView,
-    QTableWidgetItem,
+    QComboBox,
+    QFileDialog,
+    QHeaderView,
+    QMainWindow,
     QMenu,
+    QMessageBox,
+    QTableWidgetItem,
 )
+
 from src.assets.ui.ui_FolderMaster import Ui_MainWindow
 from src.views.file_system_view import FileSystemView
 
+# Table columns of the batch list
+COL_RULE, COL_EXTENSIONS, COL_FOLDER, COL_TARGET = range(4)
+SOURCE_DIR_ROLE = Qt.ItemDataRole.UserRole  # Source folder stored on the rule-name cell
+
 
 class MainWindow(QMainWindow):
-    
+
     # ------------------------------------------------------------------
     # View Signals (Semantic User Intentions)
     # ------------------------------------------------------------------
     browse_folder_clicked = Signal(str)
     go_back_clicked = Signal()
     recent_folder_selected = Signal(str)
-    list_files_clicked = Signal(str, str)
-    display_rule_info_clicked = Signal(str, str)
-    save_rule_clicked = Signal(str, str, list)  # Source dir, opt. folder name, extensions list
+    list_files_clicked = Signal(str, str)  # Rule name ("" = no rule), source dir
+    display_rule_info_clicked = Signal(str, str)  # Rule name, source dir
+    save_rule_clicked = Signal(str, str, list)  # Rule name, opt. folder name, extensions list
     add_to_list_clicked = Signal(str, str)  # Source dir, rule name
-    show_context_menu_requested = Signal(QPoint)
-    context_menu_action_clicked = Signal(str)
-    organize_clicked = Signal(str, list)
+    context_menu_action_clicked = Signal(str, int)  # Action text, current row
+    organize_clicked = Signal(list)  # Batch rows (each carries its own source dir)
 
-    def __init__(self, app_name: str, org_name: str):
+    def __init__(self, app_name: str, org_name: str) -> None:
         super().__init__()
+        self.settings = QSettings(org_name, app_name)
         self._load_ui_manifest()
+        self._configure_widgets()
         self._mount_sub_views()
         self._connect_widget_events()
-        self.settings = QSettings(org_name, app_name)
+        self._restore_window_state()
 
     def _load_ui_manifest(self) -> None:
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
+    def _configure_widgets(self) -> None:
+        ui = self.ui
+        ui.button_back.setEnabled(False)  # Disabled until there is history
+        ui.combobox_recent_folders.setPlaceholderText("Select a recent folder...")
+        # Long paths must not dictate the window layout; the popup still shows them in full
+        for combobox in (ui.combobox_recent_folders, ui.combobox_rules):
+            combobox.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
+            combobox.setMinimumContentsLength(20)
+        ui.text_edit_program_output.setReadOnly(True)
+        ui.line_edit_selected_folder.setPlaceholderText("Browse or type a folder path and press Enter...")
+
+        # The rule-info button only has a theme icon; fall back to text where none is available
+        ui.button_rule_info.setToolTip("Show rule details")
+        if ui.button_rule_info.icon().isNull():
+            ui.button_rule_info.setText("Info")
+
+        # The header / feature buttons are not implemented yet
+        for button in (ui.button_manage_rules, ui.button_app_settings):
+            button.setEnabled(False)
+            button.setToolTip("Coming soon")
+
+        table = ui.table_widget_batch_rules
+        table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        table.verticalHeader().setVisible(False)
+        table.verticalHeader().setDefaultSectionSize(24)  # Match the compact tree view rows
+        table.setShowGrid(False)
+        table.setWordWrap(False)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
+        table.horizontalHeader().setProperty("showSortIndicator", False)
+        # Centered titles drift off-screen in a wide stretched last column
+        table.horizontalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+
+        # The header card already separates itself visually; the extra divider line is redundant
+        ui.line.hide()
+
+        # Give the form labels one shared width so the input fields line up
+        form_labels = (ui.label_rule_name, ui.label_extensions, ui.label_opt_folder)
+        for label in form_labels:
+            label.ensurePolished()  # Measure with the stylesheet font, not the default one
+        label_width = max(label.sizeHint().width() for label in form_labels)
+        for label in form_labels:
+            label.setMinimumWidth(label_width)
+
+        # Dynamic properties used by the QSS theme
+        ui.button_sort.setProperty("variant", "primary")
+        ui.button_save_rule.setProperty("variant", "primary")
+        ui.button_rule_info.setProperty("variant", "icon")
 
     def _mount_sub_views(self) -> None:
         """Instantiates helper wrappers passing down the active layout reference."""
         self.file_system_view = FileSystemView(self)
 
     def _connect_widget_events(self) -> None:
+        ui = self.ui
         # Buttons
-        self.ui.button_browse_folder.clicked.connect(self.handle_browse_folder_button_clicked)
-        self.ui.button_back.setEnabled(False)  # Disable back button on startup
-        self.ui.button_back.clicked.connect(self.handle_go_back_button_clicked)
-        self.ui.button_list_files.clicked.connect(self.handle_list_files_button_clicked)
-        self.ui.button_rule_info.clicked.connect(self.handle_display_rule_info_button_clicked)
-        self.ui.button_save_rule.clicked.connect(self.handle_save_rule_button_clicked)
-        self.ui.button_add_to_list.clicked.connect(self.handle_add_to_list_button_clicked)
-        self.ui.button_sort.clicked.connect(self.handle_button_sort_clicked)
+        ui.button_browse_folder.clicked.connect(self.handle_browse_folder_button_clicked)
+        ui.button_back.clicked.connect(self.go_back_clicked)
+        ui.button_list_files.clicked.connect(self.handle_list_files_button_clicked)
+        ui.button_rule_info.clicked.connect(self.handle_display_rule_info_button_clicked)
+        ui.button_save_rule.clicked.connect(self.handle_save_rule_button_clicked)
+        ui.button_add_to_list.clicked.connect(self.handle_add_to_list_button_clicked)
+        ui.button_sort.clicked.connect(self.handle_button_sort_clicked)
+        # Typed path
+        ui.line_edit_selected_folder.returnPressed.connect(self.handle_selected_folder_entered)
         # Combobox
-        self.ui.combobox_recent_folders.activated.connect(self.handle_recent_folder_combobox_activated)
+        ui.combobox_recent_folders.activated.connect(self.handle_recent_folder_combobox_activated)
         # Context Menu
-        self.ui.table_widget_batch_rules.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.ui.table_widget_batch_rules.customContextMenuRequested.connect(self.show_table_widget_context_menu)
+        ui.table_widget_batch_rules.customContextMenuRequested.connect(self.show_table_widget_context_menu)
 
     # --------------------------------------------------------
     # Window State Lifecycle
     # --------------------------------------------------------
-
-    def showEvent(self, event: QShowEvent) -> None:
-        super().showEvent(event)
-        self._restore_window_state()
 
     def closeEvent(self, event: QCloseEvent) -> None:
         self._save_window_state()
@@ -85,6 +143,7 @@ class MainWindow(QMainWindow):
         self.settings.setValue("windowState", self.saveState())
 
     def _restore_window_state(self) -> None:
+        """Called once on construction (showEvent also fires on every un-minimise)."""
         geometry = self.settings.value("geometry")
         if geometry:
             self.restoreGeometry(geometry)
@@ -93,13 +152,23 @@ class MainWindow(QMainWindow):
         if state:
             self.restoreState(state)
 
-        recent_folders = self.settings.value("recentFolders", [])
-        if recent_folders:
-            self.ui.combobox_recent_folders.addItems(recent_folders)
+        # type=list: QSettings on Windows returns a plain str when only one entry was saved
+        recent_folders = self.settings.value("recentFolders", [], type=list)
+        combobox = self.ui.combobox_recent_folders
+        combobox.addItems([str(p) for p in recent_folders if p])
+        combobox.setCurrentIndex(-1)  # Show the placeholder; no folder is active on startup
 
     # ------------------------------------------------------------------
-    # Internal View Event Handlers (Gathers local UI state, then Emits)
+    # Helpers
     # ------------------------------------------------------------------
+
+    def _current_rule_name(self) -> str:
+        """Selected rule name, or "" when the 'Select a rule...' placeholder is active."""
+        combobox = self.ui.combobox_rules
+        return combobox.currentText() if combobox.currentIndex() > 0 else ""
+
+    def _source_dir(self) -> str:
+        return self.ui.line_edit_selected_folder.text().strip()
 
     # ------------------------------------
     # Context Menu for QTableWidget
@@ -108,32 +177,32 @@ class MainWindow(QMainWindow):
     @Slot(QPoint)
     def show_table_widget_context_menu(self, position: QPoint) -> None:
         """Constructs and displays the context menu locally in view space."""
-        menu = QMenu(self)
+        table = self.ui.table_widget_batch_rules
+        if table.rowCount() == 0:
+            return
 
-        # Add actions to menu
-        menu.addAction("Remove Selected")
+        # Right-clicking a row should act on that row
+        row_under_cursor = table.rowAt(position.y())
+        if row_under_cursor >= 0:
+            table.selectRow(row_under_cursor)
+
+        menu = QMenu(self)
+        remove_selected = menu.addAction("Remove Selected")
+        remove_selected.setEnabled(table.currentRow() >= 0)
         menu.addAction("Remove All")
 
-        # menu.exec() pauses execution and returns the specific QAction clicked
-        global_position = self.ui.table_widget_batch_rules.mapToGlobal(position)
-        selected_action = menu.exec(global_position)
-
-        # If the user clicked outside the menu, selected_action will be None
+        selected_action = menu.exec(table.viewport().mapToGlobal(position))
         if selected_action:
-            # Emit the text string directly to the Controller ("Remove Selected" or "Remove All")
-            self.context_menu_action_clicked.emit(selected_action.text())
+            self.context_menu_action_clicked.emit(selected_action.text(), table.currentRow())
 
     @Slot(int)
     def update_table_widget_on_delete_selected(self, selected_row: int) -> None:
-        table = self.ui.table_widget_batch_rules
-        if selected_row != -1:
-            table.removeRow(selected_row)
+        if selected_row >= 0:
+            self.ui.table_widget_batch_rules.removeRow(selected_row)
 
     @Slot()
     def update_table_widget_on_delete_all(self) -> None:
-        table = self.ui.table_widget_batch_rules
-        if table.rowCount() > 0:
-            table.setRowCount(0)  # Wipes out all data rows safely
+        self.ui.table_widget_batch_rules.setRowCount(0)
 
     # ------------------------------------
     # Organize button
@@ -141,77 +210,81 @@ class MainWindow(QMainWindow):
 
     @Slot(str, int)
     def update_on_organize_completed(self, rule_name: str, moved_count: int) -> None:
-        """Appends clear logs tracking exactly what row criteria swept up matching items."""
         self.ui.text_edit_program_output.append(
             f"» Rule '{rule_name}': Processed and moved {moved_count} file(s)."
         )
+        self.statusBar().showMessage(f"Rule '{rule_name}': moved {moved_count} file(s)", 5000)
 
     @Slot()
     def handle_button_sort_clicked(self) -> None:
         """Gathers the entire table data batch and sends it out to the controller."""
-        source_dir = self.ui.line_edit_selected_folder.text()
         table = self.ui.table_widget_batch_rules
 
         if table.rowCount() == 0:
-            QMessageBox.warning(
-                self, "Empty Batch", "There are no rules in the batch list to organize."
-            )
+            QMessageBox.warning(self, "Empty Batch", "There are no rules in the batch list to organize.")
             return
 
         batch_data = []
         for row in range(table.rowCount()):
-            rule_name = table.item(row, 0).text()
-            extensions = [
-                ext.strip()
-                for ext in table.item(row, 1).text().split(",")
-                if ext.strip()
-            ]
-            folder_name = table.item(row, 2).text()
-
+            rule_item = table.item(row, COL_RULE)
             batch_data.append(
                 {
-                    "rule_name": rule_name,
-                    "extensions": extensions,
-                    "folder": folder_name,
+                    "rule_name": rule_item.text(),
+                    "source_dir": rule_item.data(SOURCE_DIR_ROLE) or self._source_dir(),
+                    "extensions": [
+                        ext.strip() for ext in table.item(row, COL_EXTENSIONS).text().split(",") if ext.strip()
+                    ],
+                    "folder": table.item(row, COL_FOLDER).text(),
                 }
             )
 
-        self.organize_clicked.emit(source_dir, batch_data)
+        answer = QMessageBox.question(
+            self,
+            "Organize files",
+            f"Move matching files for {len(batch_data)} rule(s) into their target folders?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if answer == QMessageBox.StandardButton.Yes:
+            self.ui.text_edit_program_output.clear()
+            self.organize_clicked.emit(batch_data)
 
     # ------------------------------------
-    # Browse folder button
+    # Browse folder
     # ------------------------------------
 
-    @Slot(str)  # Browse button
+    @Slot(str)
     def update_on_browse_folder_clicked(self, path: str) -> None:
         self.ui.line_edit_selected_folder.setText(path)
         self.file_system_view.update_displayed_folder(path)
 
     @Slot()
     def handle_browse_folder_button_clicked(self) -> None:
-        folder = QFileDialog.getExistingDirectory(self, "Select Source Folder")
+        folder = QFileDialog.getExistingDirectory(self, "Select Source Folder", self._source_dir())
         if folder:
             self.browse_folder_clicked.emit(folder)
 
+    @Slot()
+    def handle_selected_folder_entered(self) -> None:
+        path = self._source_dir()
+        if not path:
+            return
+        if os.path.isdir(path):
+            self.browse_folder_clicked.emit(path)
+        else:
+            self.show_warning_message_box("Directory does not exist", f"The folder does not exist:\n{path}")
+
     # ------------------------------------
-    # List files button
+    # List files / rule info
     # ------------------------------------
 
     @Slot()
     def handle_list_files_button_clicked(self) -> None:
-        rule_name = self.ui.combobox_rules.currentText()
-        source_dir = self.ui.line_edit_selected_folder.text()
-        self.list_files_clicked.emit(rule_name, source_dir)
-
-    # ------------------------------------
-    # Display rule info button
-    # ------------------------------------
+        self.list_files_clicked.emit(self._current_rule_name(), self._source_dir())
 
     @Slot()
     def handle_display_rule_info_button_clicked(self) -> None:
-        rule_name = self.ui.combobox_rules.currentText()
-        source_dir = self.ui.line_edit_selected_folder.text()
-        self.display_rule_info_clicked.emit(rule_name, source_dir)
+        self.display_rule_info_clicked.emit(self._current_rule_name(), self._source_dir())
 
     # ------------------------------------
     # Save rule button
@@ -219,84 +292,57 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def handle_save_rule_button_clicked(self) -> None:
-        rule_name: str = self.ui.line_edit_rule_name.text().strip()
-        opt_folder_name: str = self.ui.line_edit_opt_folder.text().strip()
-        # Split extensions by comma and strip extra whitespaces from each entry
-        extensions: list[str] = [
-            ext.strip()
-            for ext in self.ui.line_edit_extensions.text().split(",")
-            if ext.strip()
-        ]
+        rule_name = self.ui.line_edit_rule_name.text().strip()
+        opt_folder_name = self.ui.line_edit_opt_folder.text().strip()
+        extensions = [ext.strip() for ext in self.ui.line_edit_extensions.text().split(",") if ext.strip()]
         self.save_rule_clicked.emit(rule_name, opt_folder_name, extensions)
 
     # ------------------------------------
     # Add to list button
     # ------------------------------------
 
-    @Slot(int)
-    def remove_table_row_at(self, row_index: int) -> None:
-        self.ui.table_widget_batch_rules.removeRow(row_index)
-
-    @Slot()
-    def clear_all_table_rows(self) -> None:
-        self.ui.table_widget_batch_rules.setRowCount(0)
-
     @Slot()
     def handle_add_to_list_button_clicked(self) -> None:
-        source_dir = self.ui.line_edit_selected_folder.text()
-        rule_name = self.ui.combobox_rules.currentText()
-        self.add_to_list_clicked.emit(source_dir, rule_name)
+        self.add_to_list_clicked.emit(self._source_dir(), self._current_rule_name())
 
     @Slot(str, dict)
     def update_list_widget(self, rule_name: str, rule_data: dict) -> None:
         table = self.ui.table_widget_batch_rules
-        table.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
-        # Extract the data for this specific rule
-        source_folder = self.ui.line_edit_selected_folder.text()
+        source_folder = self._source_dir()
         folder_name = rule_data.get("folder", "")
         extensions = ", ".join(rule_data.get("extensions", []))
-        target_structure = (source_folder if folder_name == "" else f"{source_folder}/{folder_name}")
-        
+        # Mirrors the model: an empty folder name falls back to the rule name
+        target_structure = os.path.normpath(os.path.join(source_folder, folder_name or rule_name))
+
         # Prevent duplicate rows in the batch list
         for row in range(table.rowCount()):
-            item_rule = table.item(row, 0)
-            item_target = table.item(row, 3)
-
-            if not item_rule or not item_target:
-                continue
-
-            if item_rule.text() == rule_name and item_target.text() == target_structure:
-                QMessageBox.warning(
-                    self,
-                    "Duplicate rule",
-                    f"The rule '{rule_name}' is already in your batch list.",
-                )
+            item_rule = table.item(row, COL_RULE)
+            item_target = table.item(row, COL_TARGET)
+            if item_rule and item_target and item_rule.text() == rule_name and item_target.text() == target_structure:
+                QMessageBox.warning(self, "Duplicate rule", f"The rule '{rule_name}' is already in your batch list.")
                 return
 
-        # Insert exactly ONE new row at the bottom of your table
         row_idx = table.rowCount()
         table.insertRow(row_idx)
 
-        # Populate the cells for this rule
-        table.setItem(row_idx, 0, QTableWidgetItem(rule_name))              # Column 0: Rule Name
-        table.setItem(row_idx, 1, QTableWidgetItem(extensions))             # Column 1: Extensions
-        table.setItem(row_idx, 2, QTableWidgetItem(folder_name))            # Column 2: Opt. Folder Name
-        table.setItem(row_idx, 3, QTableWidgetItem(str(target_structure)))  # Column 3: Target Structure
+        rule_item = QTableWidgetItem(rule_name)
+        rule_item.setData(SOURCE_DIR_ROLE, source_folder)
+        target_item = QTableWidgetItem(target_structure)
+        target_item.setToolTip(target_structure)
 
-        # Automatically fit column widths cleanly
+        table.setItem(row_idx, COL_RULE, rule_item)
+        table.setItem(row_idx, COL_EXTENSIONS, QTableWidgetItem(extensions))
+        table.setItem(row_idx, COL_FOLDER, QTableWidgetItem(folder_name))
+        table.setItem(row_idx, COL_TARGET, target_item)
+
         table.resizeColumnsToContents()
 
     # ------------------------------------
     # Go back button
     # ------------------------------------
 
-    @Slot()  # Go back button
-    def handle_go_back_button_clicked(self) -> None:
-        # Simply announce the intentional interaction to the Controller
-        self.go_back_clicked.emit()
-
-    @Slot(bool)  # Go back button update state
+    @Slot(bool)
     def set_back_button_enabled(self, enabled: bool) -> None:
         """Public slot called by the controller to toggle button availability."""
         self.ui.button_back.setEnabled(enabled)
@@ -305,30 +351,21 @@ class MainWindow(QMainWindow):
     # Recent folders combobox
     # ------------------------------------
 
-    @Slot(str, int)  # Recent folders combobox
+    @Slot(str, int)
     def update_recent_folders_combobox(self, path: str, max_folders: int) -> None:
         combobox = self.ui.combobox_recent_folders
-
-        # Extract clean list of current items
         items = [combobox.itemText(i) for i in range(combobox.count())]
 
-        # If it already exists, remove it so we can re-insert it at the top
-        if path in items:
-            index = items.index(path)
-            combobox.removeItem(index)
-            items.remove(path)
+        # Move the path to the top and enforce the size limit
+        items = [path] + [p for p in items if os.path.normcase(p) != os.path.normcase(path)]
+        items = items[:max_folders]
 
-        # Enforce max folders constraint by popping old items
-        while len(items) >= max_folders:
-            combobox.removeItem(combobox.count() - 1)
-            items.pop()
-
-        # Insert newest path cleanly at the top (Index 0)
-        combobox.insertItem(0, path)
+        combobox.blockSignals(True)
+        combobox.clear()
+        combobox.addItems(items)
         combobox.setCurrentIndex(0)
-        items.insert(0, path)
+        combobox.blockSignals(False)
 
-        # Persist state and notify
         self.settings.setValue("recentFolders", items)
 
     @Slot(int)
@@ -345,39 +382,39 @@ class MainWindow(QMainWindow):
     @Slot(dict)
     def update_rules_combobox(self, rules_data: dict) -> None:
         combobox = self.ui.combobox_rules
+        previous = combobox.currentText()
+
+        combobox.blockSignals(True)
         combobox.clear()
         combobox.addItem("Select a rule...")
+        combobox.addItems(list(rules_data))
+        # Keep the user's selection across reloads (e.g. after saving a rule)
+        combobox.setCurrentIndex(max(combobox.findText(previous), 0))
+        combobox.blockSignals(False)
 
         if not rules_data:
-            self.ui.text_edit_program_output.setText("No rules found to load")
-        else:
-            rules: list[str] = list(rules_data.keys())
-            combobox.addItems(rules)
+            self.ui.text_edit_program_output.setPlainText("No rules found to load")
 
     # ------------------------------------
     # Program Output updates
     # ------------------------------------
 
-    @Slot(list)  # List files button update program output with files
+    @Slot(list)
     def update_list_files_to_program_output(self, files_list: list[str]) -> None:
-
         if not files_list:
-            self.ui.text_edit_program_output.setText(
-                "No matching files found for this rule."
-            )
+            self.ui.text_edit_program_output.append("No matching files found.")
             return
-        formatted_text = "\n".join(f"• {filename}" for filename in files_list)
+        # One append for the whole list is much cheaper than one per file
+        self.ui.text_edit_program_output.append("\n".join(f"• {name}" for name in files_list))
+        self.statusBar().showMessage(f"{len(files_list)} file(s) found", 5000)
 
-        # Display it in your UI element
-        self.ui.text_edit_program_output.append(formatted_text)
-
-    @Slot(str)  # Program Output append
+    @Slot(str)
     def update_append_to_program_output(self, message: str) -> None:
         self.ui.text_edit_program_output.append(message)
 
-    @Slot(str)  # Program Output setText
+    @Slot(str)
     def update_set_text_to_program_output(self, message: str) -> None:
-        self.ui.text_edit_program_output.setText(message)
+        self.ui.text_edit_program_output.setPlainText(message)
 
     # ------------------------------------
     # QMessageBox slots
