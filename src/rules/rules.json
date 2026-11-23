@@ -5,5 +5,11 @@
             ".xls"
         ],
         "folder": ""
+    },
+    "Text Files": {
+        "extensions": [
+            ".txt"
+        ],
+        "folder": "Text"
     }
 }

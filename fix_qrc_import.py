@@ -1,12 +1,12 @@
 from pathlib import Path
 
 def fix_qrc_import() -> None:
-    file_path = Path("src") / "assets" / "gui" / "ui" / "ui_FolderMaster.py"
+    file_path = Path("src") / "assets" / "ui" / "ui_FolderMaster.py"
     err_import = "import FolderMaster_rc"
-    ok_import = "from . import qrc_FolderMaster"
+    ok_import = "import src.assets.ui.qrc_FolderMaster"
     
     if not file_path.exists():
-        print("File does not exist!")
+        print(f"File does not exist!\nFile: '{file_path}'")
         return
 
     print("Starting to fix import!")
@@ -27,5 +27,7 @@ def fix_qrc_import() -> None:
         with open(file_path, "w", encoding="utf-8") as f:
             f.writelines(lines)
         print("Pre-flight check: Fixed UI layout resource imports successfully.")
+    else:
+        print("Nothing changed, import looks fine to me!")
 
 fix_qrc_import()

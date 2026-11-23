@@ -8,7 +8,7 @@ This program is used to help organize files in a specified folder based on the f
 - Optional sort and move files based on the optional organization option by category.
 
 ## Installation
-Tested on Python 3.12.x
+Tested on Python 3.13+
 
 Install the needed python packages:
 `pip install -r requirements.txt`
